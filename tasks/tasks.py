@@ -3,7 +3,7 @@ from celery import shared_task, Task
 from django.apps import apps
 from django_celery_results.models import TaskResult
 from django.conf import settings
-from .patterns import get_command, TRAIN
+from .patterns import get_command
 from tqdm import tqdm
 import jsonlines
 import prodigy
@@ -111,14 +111,20 @@ class TrainTaskBase(Task):
     
     def generate_meta(self):
         meta = self.train.input_meta
-        meta.update()
+        meta.update({ # add output dir, mode, and database
+            'output_dir': os.path.join(settings.MODEL_DIR, self.train.model.path),
+            self.train.model.mode.lower(): self.train.dataset.name # for mode flag --ner test_ner
+
+        })
+        return meta
 
 @shared_task(bind=True, base=TrainTaskBase)
 def train_prodigy(self, train_id):
     self.update_state(state='PROGRESS')
     self.update_train(train_id)
+    meta = self.generate_meta()
     # train_input = TRAIN()(self.train.input_meta)
-    prodigy.recipes.train.train(**self.train.input_meta)
+    prodigy.recipes.train.train(**meta)
 
 
 @shared_task

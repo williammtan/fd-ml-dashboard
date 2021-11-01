@@ -79,6 +79,14 @@ class Session(models.Model):
 
 class Model(models.Model):
     name = models.CharField(max_length=100, blank=False, null=False)
+    path = models.CharField(max_length=100, blank=False, null=False)
+    mode = models.CharField(
+        max_length=50,
+        choices=Modes.choices,
+        default=Modes.NER,
+        blank=True,
+        null=True
+    ) # we have modes for each model and dataset. The model's tag and dataset need to match
     tags = TaggableManager("Model Tags")
     # input_meta = models.JSONField(default=dict, blank=True) # input parameters to the model training
     # train_meta = models.JSONField(default=dict, blank=True) # training results
@@ -102,20 +110,23 @@ class Train(models.Model):
         return self.task.date_created - self.task.date_done
     
     def start(self):
-        task = train_prodigy(self.id)
+        task = train_prodigy.delay(self.id)
         time.sleep(5)
         self.refresh_from_db()
         return task.id
     
     def close(self):
-        """Close prodigy session"""
+        """Terminate training"""
         task_id = self.task.task_id
         app.control.revoke(task_id, terminate=True)
         time.sleep(2)
         self.refresh_from_db()
     
     def __str__(self):
-        return self.name
+        if self.model is not None:
+            return f'{self.model.name} - {self.dataset.name}'
+        elif self.id is not None:
+            return self.id
     
     class Meta:
         db_table = 'trains'
