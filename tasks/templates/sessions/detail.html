@@ -1,0 +1,49 @@
+{% extends 'base.html' %} {% block content %}
+
+<title>{{ session.name }}</title>
+<h1 class="mt-4">Session</h1>
+<ol class="breadcrumb mb-4">
+  <li class="breadcrumb-item active" style="text-transform: capitalize;">{{ session.name }}</li>
+</ol>
+
+<table class="table table-striped table-product">
+  <tbody>
+    <tr>
+        <th>Dataset</td>
+        <td><code><a href="/dataset/{{ session.dataset.id }}">{{ session.dataset.name }}</a></code></td>
+    </tr>
+    <tr>
+        <th>Status</td>
+        <td>
+            <b class="{{ session.active|yesno:"text-success,text-danger" }}">{{ session.status }}</b>
+        </td>
+    </tr>
+    <tr>
+        <th>Meta</td>
+        <td>
+            <code>
+                <pre>{{ session.get_meta|safe }}</pre>
+            </code>
+        </td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="float-end">
+    {% if session.active %}
+        <a class="btn btn-success" href="/sessions/{{ session.id }}/prodigy">Join Session</a>
+        <a class="btn btn-danger" href="/sessions/{{ session.id }}/stop">Stop Session</a>
+    {% else %}
+        <a class="btn btn-primary" href="/sessions/{{ session.id }}/start">Start Session</a>
+    {% endif %}
+</div>
+<br />
+<br />
+
+{% if session.active %}
+<div class="embed-responsive embed-responsive-16by9">
+    <iframe height="500" width="1000" src="/sessions/{{ session.id }}/prodigy" title="prodigy"></iframe>
+</div>
+{% endif %}
+
+{% endblock %}

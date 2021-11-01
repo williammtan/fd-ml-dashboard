@@ -1,0 +1,8 @@
+.env
+**.log
+**.sqlite3
+**.db
+source.json
+prodigy.json
+__pycache__
+data

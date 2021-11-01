@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+<title>Create Session</title>
+
+<h1 class="mt-4">Create Session</h1>
+<ol class="breadcrumb mb-4">
+    <li class="breadcrumb-item active">Dashboard / <a href='/sessions'>Sessions</a> / new</li>
+</ol>
+
+<form method="post">{% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Create session</button>
+</form>
+
+<script>
+    var hashParams = window.location.hash.substr(1).split('&'); // substr(1) to remove the `#`
+    for(var i = 0; i < hashParams.length; i++){
+        var p = hashParams[i].split('=');
+        document.getElementById(p[0]).value = p[1];
+    }
+</script>
+
+{% endblock %}

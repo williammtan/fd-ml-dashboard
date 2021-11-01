@@ -1,0 +1,21 @@
+{% extends 'base.html' %} {% block content %}
+
+<h1>Create session</h1>
+<form method="post">{% csrf_token %}
+    <!-- {{ form.as_p }} -->
+    <div class="form-group">
+        <label for="recipe">Recipe</label>
+        <select class="form-control" id="recipe" name="recipe" required>
+            {% for recipe in recipes %}
+                <option>
+                    {{ recipe }}
+                </option>
+            {% endfor %}
+        </select>
+        {% if error_message %}<p class="text-danger"><strong>{{ error_message }}</strong></p>{% endif %}
+    </div>
+    <br>
+    <button type="submit" class="btn btn-primary">Next</button>
+</form>
+
+{% endblock %}

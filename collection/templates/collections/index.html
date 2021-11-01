@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+<title>Collections</title>
+
+<div class="d-flex align-items-center justify-content-between">
+    <div class="float-start">
+        <h1 class="mt-4">Collections</h1>
+    </div>
+    <div class="float-end vertical-align">
+        <a class="btn btn-success" href="/collection/new">Create Collection</a>
+    </div>
+</div>
+
+{% if collection_list %}
+
+    <!-- <ul>
+        {% for collection in collection_list %}
+        {% with collection.categories.all|first as category %}
+        <li>
+            <a href="{% url 'collection:detail' collection.id %}">{{collection.name}}</a>
+        </li>
+        {% endwith %}
+        {% endfor %}
+    </ul> -->
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Name</th>
+                <th scope="col">No. Categories</th>
+                <th scope="col">No. Datasets</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for collection in collection_list %}
+                <tr>
+                    <th scope="row"><a href="/collection/{{ collection.id }}">{{ collection.id }}</a></th>
+                    <td style="text-transform: capitalize;">{{ collection.name }}</td>
+                    <td>{{ collection.categories.count }}</td>
+                    <td>{{ collection.dataset_choice.count }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="float-end">
+        {% include 'pagination.html' %}
+    </div>
+{% else %}
+    <p>No collections are available.</p>
+{% endif %}
+
+{% endblock %}

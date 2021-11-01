@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<title>Sessions</title>
+
+<div class="d-flex align-items-center justify-content-between">
+    <div class="float-start">
+        <h1 class="mt-4">Sessions</h1>
+    </div>
+    <div class="float-end vertical-align">
+        <a class="btn btn-success" href="/sessions/new">Create Session</a>
+    </div>
+</div>
+
+
+{% if session_list %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Name</th>
+                <th scope="col">Recipe</th>
+                <th scope="col">Dataset</th>
+                <th scope="col">Status</tf>
+            </tr>
+        </thead>
+        <tbody>
+            {% for session in session_list %}
+                <tr>
+                    <th scope="row"><a href="/sessions/{{ session.id }}">{{ session.id }}</a></th>
+                    <td style="text-transform: capitalize;">{{ session.name }}</td>
+                    <td><code>{{ session.recipe }}</code></td>
+                    <td><code><a href="/dataset/{{ session.dataset.id }}">{{ session.dataset }}</a></code></td>
+                    <td>
+                        <b class="{{ session.active|yesno:"text-success,text-danger" }}">{{ session.status }}</b>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="float-end">
+        {% include 'pagination.html' %}
+    </div>
+{% else %}
+    <p>No sessions are available.</p>
+{% endif %}
+
+{% endblock %}
