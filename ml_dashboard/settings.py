@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'collection',
     'labeling.apps.LabelingConfig',
+    'models',
     'tasks.apps.TasksConfig',
     'revproxy',
     'rest_framework',
@@ -176,4 +177,4 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10,
 }
 
-MODEL_DIR = 'models/'
+MODEL_DIR = 'data/models/'
