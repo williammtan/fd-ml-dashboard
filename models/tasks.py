@@ -29,6 +29,13 @@ class TrainTaskBase(Task):
 def train_prodigy(self, train_id):
     self.update_state(state='PROGRESS')
     self.update_train(train_id)
+
+    self.train.train_meta = {} # reset train meta
+    self.train.save()
+
     meta = self.generate_meta()
-    # train_input = TRAIN()(self.train.input_meta)
-    prodigy.recipes.train.train(**meta)
+    baseline, scores = prodigy.recipes.train.train(**meta)
+
+    self.update_state(state='SUCCESS', meta={'baseline': baseline, 'scores': scores})
+    self.train.train_meta = {'baseline': baseline, 'scores': scores}
+    self.train.save()

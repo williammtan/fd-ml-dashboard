@@ -1,0 +1,114 @@
+{% extends 'base.html' %} {% block content %}
+
+<title>{{ train.name }}</title>
+<h1 class="mt-4">Train Session</h1>
+<ol class="breadcrumb mb-4">
+  <li class="breadcrumb-item active" style="text-transform: capitalize;">{{ train.name }}</li>
+</ol>
+
+<table class="table table-striped table-product">
+  <tbody>
+    <tr>
+        <th>Dataset</td>
+        <td><code><a href="/dataset/{{ train.dataset.id }}">{{ train.dataset.name }}</a></code></td>
+    </tr>
+    <tr>
+        <th>Status</td>
+        <td>
+            <b
+                class="
+                {% if train.status == 'Pending' %}
+                text-info
+                {% elif train.status == 'Running' %}
+                text-warning
+                {% elif train.status == 'Done' %}
+                text-success
+                {% elif train.status == 'Failed' or train.status == 'Cancelled' %}
+                text-danger
+                {% elif train.status == 'Not Started' %}
+                text-muted
+                {% endif %}
+                "
+            >{{train.status}}</b>
+        </td>
+    </tr>
+    <tr>
+        <th>Input Meta</td>
+        <td>
+            <code>
+                <pre>{{ train.get_input_meta }}</pre>
+            </code>
+        </td>
+    </tr>
+    <!-- <tr>
+        <th>Meta</td>
+        <td>
+            <code>
+                <pre>{{ train.get_train_meta }}</pre>
+            </code>
+        </td>
+    </tr> -->
+    {% if train.status == 'Done' or train.status == 'Failed' or train.status == 'Cancelled' %}
+    <tr>
+        <th>Time took</td>
+        <td>
+            <code>
+                <pre>{{ train.time_taken.seconds }} sec</pre>
+            </code>
+        </td>
+    </tr>
+    {% endif %}
+  </tbody>
+</table>
+<br />
+
+{% if train.status == 'Done' %}
+{% with train.train_meta.scores.other_scores.ents_per_type as scores %}
+<div class="container-md">
+    <table class="table table-hover table-sm">
+        <thead>
+            <tr>
+                <th>Label</th>
+                <th>Precision</th>
+                <th>Recall</th>
+                <th>F1</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for label, value in scores.items %}
+                <tr>
+                    <th scope="col col-sm">{{ label }}</th>
+                    <td scope="col"><code>{{ value.p }}</code></td>
+                    <td scope="col"><code>{{ value.r }}</code></td>
+                    <td scope="col"><code>{{ value.f }}</code></td>
+                </tr>
+            {% endfor %}
+            <tr>
+                <th scope="col col-sm">Total</th>
+                <td scope="col"><code>{{ train.train_meta.scores.other_scores.ents_p }}</code></td>
+                <td scope="col"><code>{{ train.train_meta.scores.other_scores.ents_r }}</code></td>
+                <td scope="col"><code>{{ train.train_meta.scores.other_scores.ents_f }}</code></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+{% endwith %}
+{% endif %}
+<br />
+
+<div class="float-end">
+    {% if not train.task %}
+        <a class="btn btn-primary" href="/models/train/{{ train.id }}/start">Start Session</a>
+    {% endif %}
+
+    {% if train.status == 'Done' %}
+        <!-- <a class="btn btn-success" href="/sessions/{{ session.id }}/prodigy">Join Session</a> -->
+        <a class="btn btn-success" href="/models/train/{{ train.id }}/start">Rerun Session</a>
+    {% elif train.status == 'Running' or train.status == 'Pending' %}
+        <a class="btn btn-danger" href="/models/train/{{ train.id }}/stop">Cancel Session</a>
+    {% elif train.status == 'Failed' or train.status == 'Cancelled' %}
+        <a class="btn btn-danger" href="/models/train/{{ train.id }}/start">Retry Session</a>
+    {% endif %}
+</div>
+
+{% endblock %}

@@ -3,6 +3,7 @@ from taggit.managers import TaggableManager
 from django_celery_results.models import TaskResult
 from django.conf import settings
 from django.utils import timezone
+import json
 import time
 
 from ml_dashboard.celery import app
@@ -37,9 +38,11 @@ class Model(models.Model):
 class Train(models.Model):
     """Model for all training sessions"""
     class Statuses(models.TextChoices):
+        not_started = 'Not Started'
         pending = 'Pending'
         running = 'Running'
         failed = 'Failed'
+        cancelled = 'Cancelled'
         done = 'Done'
 
     name = models.CharField(max_length=200)
@@ -61,14 +64,17 @@ class Train(models.Model):
                 return self.Statuses.done
             elif self.task.status == 'FAILURE':
                 return self.Statuses.failed
+            elif self.task.status == 'REVOKED':
+                return self.Statuses.cancelled
         elif (timezone.now() - self.created_at).seconds > settings.TRAIN_TIMEOUT:
             return self.Statuses.failed
         else:
-            return self.Statuses.pending
+            return self.Statuses.not_started
 
     def time_taken(self):
         """Time taken to run the training task"""
-        return self.task.date_created - self.task.date_done
+        if self.task:
+            return self.task.date_done - self.task.date_created
     
     def start(self):
         task = train_prodigy.delay(self.id)
@@ -82,6 +88,12 @@ class Train(models.Model):
         app.control.revoke(task_id, terminate=True)
         time.sleep(2)
         self.refresh_from_db()
+    
+    def get_input_meta(self):
+        return json.dumps(self.input_meta, indent=4, sort_keys=True)
+    
+    def get_train_meta(self):
+        return json.dumps(self.train_meta, indent=4, sort_keys=True)
     
     def __str__(self):
         if self.model is not None:
