@@ -133,10 +133,3 @@ def stop_session(request, session_id):
     
     session.close()
     return redirect('tasks:detail', pk=session_id)
-
-class TrainIndexView(generic.ListView):
-    model = Session
-    template_name = 'train/index.html'
-    context_object_name = 'train_list'
-    paginate_by = 10
-    ordering = ['-created_at']

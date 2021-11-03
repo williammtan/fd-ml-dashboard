@@ -19,6 +19,12 @@ class Model(models.Model):
         null=True
     ) # we have modes for each model and dataset. The model's tag and dataset need to match
     tags = TaggableManager("Model Tags")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.path:
+            self.path = self.name
+        super(Model, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.name
@@ -51,7 +57,7 @@ class Train(models.Model):
                 return self.Statuses.running
             elif self.task.status == 'SUCCESS':
                 return self.Statuses.failed
-            elif self.task.status == 'FAILED':
+            elif self.task.status == 'FAILURE':
                 return self.Statuses.failed
         else:
             return self.Statuses.pending
@@ -77,7 +83,7 @@ class Train(models.Model):
         if self.model is not None:
             return f'{self.model.name} - {self.dataset.name}'
         elif self.id is not None:
-            return self.id
+            return str(self.id)
     
     class Meta:
         db_table = 'trains'

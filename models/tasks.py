@@ -9,7 +9,7 @@ import os
 
 class TrainTaskBase(Task):
     def update_train(self, train_id):
-        Train = apps.get_model('tasks', 'Train')
+        Train = apps.get_model('models', 'Train')
         self.train = Train.objects.get(pk=train_id)
         time.sleep(2)
         task = TaskResult.objects.get(task_id=self.request.id)

@@ -9,12 +9,12 @@
         <h1 class="mt-4">Train sessions</h1>
     </div>
     <div class="float-end vertical-align">
-        <a class="btn btn-success" href="/train/new">Train</a>
+        <a class="btn btn-success" href="/models/train/new">Train new</a>
     </div>
 </div>
 
 
-{% if session_list %}
+{% if train_list %}
     <table class="table">
         <thead>
             <tr>
@@ -28,7 +28,7 @@
         <tbody>
             {% for train in train_list %}
                 <tr>
-                    <th scope="row"><a href="/train/{{ train.id }}">{{ train.id }}</a></th>
+                    <th scope="row"><a href="/models/train/{{ train.id }}">{{ train.id }}</a></th>
                     <td style="text-transform: capitalize;">{{ train.name }}</td>
                     <td>{{ train.model.name }}</td>
                     <td><a href="/dataset/{{ train.dataset.id }}">{{ train.dataset }}</a></td>
@@ -45,7 +45,7 @@
                             text-danger
                             {% endif %}
                             "
-                        >{{session.status}}</b>
+                        >{{train.status}}</b>
                     </td>
                 </tr>
             {% endfor %}
@@ -56,7 +56,7 @@
         {% include 'pagination.html' %}
     </div>
 {% else %}
-    <p>No sessions are available.</p>
+    <p>No train sessions are available.</p>
 {% endif %}
 
 {% endblock %}
