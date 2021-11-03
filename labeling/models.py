@@ -18,7 +18,7 @@ def validate_dataset_name(name):
 class Modes(models.TextChoices):
     NER = 'NER',
     TEXTCAT = 'TEXTCAT'
-    TEXTCAT_EXCLUSIVE = 'TEXTCAT_EXCLUSIVE'
+    TEXTCAT_MULTILABEL = 'textcat_multilabel'
 
 class Dataset(models.Model):
 

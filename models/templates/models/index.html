@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<title>Models</title>
+
+<div class="d-flex align-items-center justify-content-between">
+    <div class="float-start">
+        <h1 class="mt-4">Models</h1>
+    </div>
+    <div class="float-end vertical-align">
+        <a class="btn btn-success" href="/models/new">Create model</a>
+    </div>
+</div>
+
+
+{% if model_list %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Name</th>
+                <th scope="col">Mode</th>
+                <th scope="col">Tags</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for model in model_list %}
+                <tr>
+                    <th scope="row"><a href="/models/{{ model.id }}">{{ model.id }}</a></th>
+                    <td style="text-transform: capitalize;">{{ model.name }}</td>
+                    <td><code>{{ model.mode }}</code></td>
+                    <td>
+                        {% for tag in model.tags.all %}
+                            <code>{{ tag }}</code> &nbsp
+                        {% endfor %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="float-end">
+        {% include 'pagination.html' %}
+    </div>
+{% else %}
+    <p>No models are available.</p>
+{% endif %}
+
+{% endblock %}

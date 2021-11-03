@@ -3,7 +3,7 @@ from celery import shared_task, Task
 from django.apps import apps
 from django_celery_results.models import TaskResult
 from django.conf import settings
-from .patterns import get_command, TRAIN
+from .patterns import get_command
 from tqdm import tqdm
 import jsonlines
 import prodigy
@@ -99,26 +99,6 @@ def serve_prodigy(self, session_id):
     except Exception as err:
         self.update_state(state='FAILURE', meta={'error': err})
         raise RunFailure()
-
-class TrainTaskBase(Task):
-    def update_train(self, train_id):
-        Train = apps.get_model('tasks', 'Train')
-        self.train = Train.objects.get(pk=train_id)
-        time.sleep(2)
-        task = TaskResult.objects.get(task_id=self.request.id)
-        self.train.task = task
-        self.train.save()
-    
-    def generate_meta(self):
-        meta = self.train.input_meta
-        meta.update()
-
-@shared_task(bind=True, base=TrainTaskBase)
-def train_prodigy(self, train_id):
-    self.update_state(state='PROGRESS')
-    self.update_train(train_id)
-    # train_input = TRAIN()(self.train.input_meta)
-    prodigy.recipes.train.train(**self.train.input_meta)
 
 
 @shared_task

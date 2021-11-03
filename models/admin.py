@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Session
+from .models import Model, Train
 
 class MultiDBModelAdmin(admin.ModelAdmin):
     # A handy constant for the name of the alternate database.
@@ -27,4 +27,5 @@ class MultiDBModelAdmin(admin.ModelAdmin):
         # on the 'other' database.
         return super().formfield_for_manytomany(db_field, request, using=self.using, **kwargs)
 
-admin.site.register(Session, MultiDBModelAdmin)
+admin.site.register(Model, MultiDBModelAdmin)
+admin.site.register(Train, MultiDBModelAdmin)

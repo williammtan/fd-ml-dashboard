@@ -8,7 +8,3 @@ from .models import Session
 def create_or_update_task(sender, instance, created, **kwargs):
     if created:
         task_id = transaction.on_commit(lambda: instance.setup_prodigy_session(), using='ml')
-    else:
-        if instance.task is not None:
-            instance.task.enabled = instance.status == Session.Statuses.active
-            instance.task.save()

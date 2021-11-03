@@ -1,13 +1,12 @@
 from django.db import models
 from django_celery_results.models import TaskResult
-from taggit.managers import TaggableManager
 from ml_dashboard.celery import app
 from celery.result import AsyncResult
 import time
 import json
 
-from .tasks import serve_prodigy, train_prodigy
-from labeling.models import Dataset, Modes
+from .tasks import serve_prodigy
+from labeling.models import Dataset
 
 class ModelTags(models.TextChoices):
     spacy = 'spacy'
@@ -77,56 +76,31 @@ class Session(models.Model):
     class Meta:
         db_table = 'session'
 
-class Model(models.Model):
-    name = models.CharField(max_length=100, blank=False, null=False)
-    tags = TaggableManager("Model Tags")
-    # input_meta = models.JSONField(default=dict, blank=True) # input parameters to the model training
-    # train_meta = models.JSONField(default=dict, blank=True) # training results
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        db_table = 'models'
-
-class Train(models.Model):
-    """Model for all training sessions"""
-    model = models.ForeignKey(Model, on_delete=models.DO_NOTHING, null=True) # allow null, so that we can fill the model after we have finished training
-    dataset = models.ForeignKey(Dataset, on_delete=models.DO_NOTHING, null=False, blank=False)
-    task = models.OneToOneField(TaskResult, on_delete=models.CASCADE, null=True, blank=True)
-    input_meta = models.JSONField(default=dict, blank=True) # input parameters to the model training
-    train_meta = models.JSONField(default=dict, blank=True) # training results meta (like accuracy)
-
-    def time_taken(self):
-        """Time taken to run the training task"""
-        return self.task.date_created - self.task.date_done
-    
-    def start(self):
-        task = train_prodigy(self.id)
-        time.sleep(5)
-        self.refresh_from_db()
-        return task.id
-    
-    def close(self):
-        """Close prodigy session"""
-        task_id = self.task.task_id
-        app.control.revoke(task_id, terminate=True)
-        time.sleep(2)
-        self.refresh_from_db()
-    
-    def __str__(self):
-        return self.name
-    
-    class Meta:
-        db_table = 'trains'
-
 # class Prediction(models.Model):
+#     """Model for prediction tasks"""
 #     model = models.ForeignKey(Model, on_delete=models.DO_NOTHING)
+#     collection = models.ForeignKey(Collection, on_delete=models.DO_NOTHING)
 #     task = models.OneToOneField(TaskResult, on_delete=models.CASCADE, null=True, blank=True)
+
 
 #     def time_taken(self):
 #         """Time taken to run the training task"""
 #         return self.task.date_created - self.task.date_done
     
-#     def teset(self):
-#         return PeriodicTask()
+#     def start(self):
+#         task = train_prodigy(self.id)
+#         time.sleep(5)
+#         self.refresh_from_db()
+#         return task.id
+    
+#     def terminate(self):
+        
+    
+#     class Meta:
+#         db_table = 'predictions'
+
+# class PredictionResult(models.Models):
+#     prediction = models.ForeignKey(Prediction)
+
+#     class Meta:
+#         db_table = 'prediction_results'

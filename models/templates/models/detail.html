@@ -1,0 +1,72 @@
+{% extends 'base.html' %} {% block content %}
+
+<title>{{ train.name }}</title>
+<h1 class="mt-4">Model</h1>
+<ol class="breadcrumb mb-4">
+  <li class="breadcrumb-item active" style="text-transform: capitalize;">{{ model.name }}</li>
+</ol>
+
+<table class="table table-striped table-product">
+  <tbody>
+    <tr>
+        <th>Mode</td>
+        <td><code>{{ model.mode }}</code></td>
+    </tr>
+    <tr>
+        <th>Tags</td>
+        <td>
+            {% for tag in model.tags.all %}
+                <code>{{ tag }}</code> &nbsp
+            {% endfor %}
+        </td>
+    </tr>
+  </tbody>
+</table>
+<br />
+<div class="float-end vertical-align">
+    <a class="btn btn-success" href="/train/new/#model={{ model.id }}">Train</a>
+</div>
+
+{% if model.train_set.count != 0 %}
+<br>
+<h2>Train sessions</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Name</th>
+            <th scope="col">Model</th>
+            <th scope="col">Dataset</th>
+            <th scope="col">Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for train in model.train_set.all %}
+            <tr>
+                <th scope="row"><a href="/train/{{ train.id }}">{{ train.id }}</a></th>
+                <td style="text-transform: capitalize;">{{ train.name }}</td>
+                <td>{{ train.model.name }}</td>
+                <td><a href="/dataset/{{ train.dataset.id }}">{{ train.dataset }}</a></td>
+                <td>
+                    <b
+                        class="
+                        {% if train.status == 'Pending' %}
+                        text-info
+                        {% elif train.status == 'Running' %}
+                        text-warning
+                        {% elif train.status == 'Done' %}
+                        text-success
+                        {% elif train.status == 'Failed' or train.status == 'Cancelled' %}
+                        text-danger
+                        {% elif train.status == 'Not Started' %}
+                        text-muted
+                        {% endif %}
+                        "
+                    >{{train.status}}</b>
+                </td>
+            </tr>
+        {% endfor %}
+</table>
+{% endif %}
+
+{% endblock %}

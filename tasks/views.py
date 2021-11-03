@@ -117,7 +117,7 @@ def get_recipe(request):
         return render(request, 'sessions/create.html', {'recipes': recipes})
 
 def start_session(request, session_id):
-    session = Session.objects.get(pk=session_id)
+    session = get_object_or_404(Session, pk=session_id)
     if session.active:
         # not allowed
         return HttpResponseForbidden('session is already active')
@@ -126,11 +126,10 @@ def start_session(request, session_id):
     return redirect('tasks:detail', pk=session_id)
 
 def stop_session(request, session_id):
-    session = Session.objects.get(pk=session_id)
+    session = get_object_or_404(Session, pk=session_id)
     if session.disabled:
         # not allowed
         return HttpResponseForbidden('session is not active')
     
     session.close()
     return redirect('tasks:detail', pk=session_id)
-

@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'collection',
     'labeling.apps.LabelingConfig',
+    'models',
     'tasks.apps.TasksConfig',
     'revproxy',
     'rest_framework',
@@ -175,3 +176,6 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework_datatables.pagination.DatatablesPageNumberPagination',
     'PAGE_SIZE': 10,
 }
+
+MODEL_DIR = 'data/models/'
+TRAIN_TIMEOUT = 100

@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+<title>Create Train</title>
+
+<h1 class="mt-4">Create Train Session</h1>
+<ol class="breadcrumb mb-4">
+    <!-- <li class="breadcrumb-item active">Dashboard / <a href='/models'>Models</a> / new</li> -->
+</ol>
+
+<form method="post">{% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Save">
+</form>
+
+<script>
+    var hashParams = window.location.hash.substr(1).split('&'); // substr(1) to remove the `#`
+    for(var i = 0; i < hashParams.length; i++){
+        var p = hashParams[i].split('=');
+        document.getElementById(p[0]).value = p[1];
+    }
+</script>
+
+{% endblock %}
