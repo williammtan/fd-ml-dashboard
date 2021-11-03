@@ -109,8 +109,12 @@ class Train(models.Model):
 class Prediction(models.Model):
     """Model for prediction tasks"""
     model = models.ForeignKey(Model, on_delete=models.DO_NOTHING)
-    collection = models.ForeignKey(Collection, on_delete=models.DO_NOTHING)
+    collection_id = models.IntegerField(null=False, blank=False)
     task = models.OneToOneField(TaskResult, on_delete=models.CASCADE, null=True, blank=True)
+
+    @property
+    def collection(self):
+        return Collection.objects.get(pk=self.collection_id)
 
     def time_taken(self):
         """Time taken to run the training task"""
@@ -119,12 +123,12 @@ class Prediction(models.Model):
     class Meta:
         db_table = 'predictions'
 
-class PredictionResult(models.Models):
+class PredictionResult(models.Model):
     """Model for prediction results"""
     product_id = models.IntegerField(blank=False, null=False)
-    prediction = models.ForeignKey(Prediction)
-    label = models.CharField(blank=False, null=False)
-    topic = models.CharField(blank=False, null=False)
+    prediction = models.ForeignKey(Prediction, on_delete=models.CASCADE)
+    label = models.CharField(max_length=100, blank=False, null=False)
+    topic = models.CharField(max_length=100, blank=False, null=False)
 
     @property
     def product(self):
