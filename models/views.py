@@ -9,9 +9,38 @@ from .models import Model, Train
 class ModelIndexView(generic.ListView):
     model = Model
     template_name = 'models/index.html'
-    context_object_name = 'train_list'
+    context_object_name = 'model_list'
     paginate_by = 10
     ordering = ['-created_at']
+
+class ModelDetailView(generic.DetailView):
+    model = Model
+    template_name = 'models/detail.html'
+
+
+class ModelForm(forms.ModelForm):
+    error_css_class = 'invalid-feedback'
+
+    def __init__(self, *args, **kwargs):
+        super(ModelForm, self).__init__(*args, **kwargs)
+        for field in self.fields.values():
+            if field.label is not None:
+                field.widget.attrs = {
+                    'class': 'form-control',
+                    'id': field.label.lower()
+                }
+
+    class Meta:
+        fields = ('name', 'mode', 'tags') 
+        model = Model
+
+class CreateModelView(generic.edit.CreateView):
+    model = Model
+    template_name = 'models/create.html'
+    form_class = ModelForm
+
+    def get_success_url(self):
+        return reverse_lazy('models:model_detail', kwargs={'pk': self.object.id})
 
 class TrainIndexView(generic.ListView):
     model = Train
@@ -56,7 +85,6 @@ class TrainForm(forms.ModelForm):
                 }
     
     def save(self, commit=True):
-        print(self.cleaned_data['start_session_on_create'])
         train = super(TrainForm, self).save(commit=commit)
         if self.cleaned_data['start_session_on_create']:
             train.start()

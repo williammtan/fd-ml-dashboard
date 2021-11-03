@@ -21,7 +21,7 @@ from tasks import views
 
 urlpatterns = [
     url('^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    path('models/', include('models.urls')),
+    path('', include('models.urls')),
     path('sessions/', include('tasks.urls')),
     path('collection/', include('collection.urls')),
     path('dataset/', include('labeling.urls')),

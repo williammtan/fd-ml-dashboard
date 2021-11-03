@@ -98,16 +98,16 @@
 
 <div class="float-end">
     {% if not train.task %}
-        <a class="btn btn-primary" href="/models/train/{{ train.id }}/start">Start Session</a>
+        <a class="btn btn-primary" href="/train/{{ train.id }}/start">Start Session</a>
     {% endif %}
 
     {% if train.status == 'Done' %}
         <!-- <a class="btn btn-success" href="/sessions/{{ session.id }}/prodigy">Join Session</a> -->
-        <a class="btn btn-success" href="/models/train/{{ train.id }}/start">Rerun Session</a>
+        <a class="btn btn-success" href="/train/{{ train.id }}/start">Rerun Session</a>
     {% elif train.status == 'Running' or train.status == 'Pending' %}
-        <a class="btn btn-danger" href="/models/train/{{ train.id }}/stop">Cancel Session</a>
+        <a class="btn btn-danger" href="/train/{{ train.id }}/stop">Cancel Session</a>
     {% elif train.status == 'Failed' or train.status == 'Cancelled' %}
-        <a class="btn btn-danger" href="/models/train/{{ train.id }}/start">Retry Session</a>
+        <a class="btn btn-danger" href="/train/{{ train.id }}/start">Retry Session</a>
     {% endif %}
 </div>
 
