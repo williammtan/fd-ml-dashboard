@@ -39,7 +39,7 @@ class FoodRouter:
         return None 
 
 class MLRouter:
-    route_app_labels = {'admin', 'auth', 'contenttypes', 'labeling', 'djcelery', 'celery', 'django_celery_results', 'sessions', 'tasks', 'django_celery_beat', 'taggit', 'celery.backend_cleanup'}
+    route_app_labels = {'admin', 'auth', 'models', 'contenttypes', 'labeling', 'djcelery', 'celery', 'django_celery_results', 'sessions', 'tasks', 'django_celery_beat', 'taggit', 'celery.backend_cleanup'}
 
     def db_for_read(self, model, **hints):
         if model._meta.app_label in self.route_app_labels:
