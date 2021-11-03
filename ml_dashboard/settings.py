@@ -178,3 +178,4 @@ REST_FRAMEWORK = {
 }
 
 MODEL_DIR = 'data/models/'
+TRAIN_TIMEOUT = 100

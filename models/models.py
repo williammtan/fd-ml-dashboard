@@ -1,9 +1,11 @@
 from django.db import models
 from taggit.managers import TaggableManager
 from django_celery_results.models import TaskResult
-from ml_dashboard.celery import app
+from django.conf import settings
+from django.utils import timezone
 import time
 
+from ml_dashboard.celery import app
 from labeling.models import Dataset, Modes
 from .tasks import train_prodigy
 
@@ -56,9 +58,11 @@ class Train(models.Model):
             elif self.task.status == 'PROGRESS':
                 return self.Statuses.running
             elif self.task.status == 'SUCCESS':
-                return self.Statuses.failed
+                return self.Statuses.done
             elif self.task.status == 'FAILURE':
                 return self.Statuses.failed
+        elif (timezone.now() - self.created_at).seconds > settings.TRAIN_TIMEOUT:
+            return self.Statuses.failed
         else:
             return self.Statuses.pending
 

@@ -37,9 +37,9 @@
                             class="
                             {% if train.status == 'Pending' %}
                             text-warning
-                            {% elif train.status == 'Progress' %}
+                            {% elif train.status == 'Running' %}
                             text-info
-                            {% elif train.status == 'Success' %}
+                            {% elif train.status == 'Done' %}
                             text-success
                             {% elif train.status == 'Failed' %}
                             text-danger
