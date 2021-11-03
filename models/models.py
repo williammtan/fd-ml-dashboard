@@ -8,6 +8,7 @@ import time
 
 from ml_dashboard.celery import app
 from labeling.models import Dataset, Modes
+from collection.models import Collection, Product
 from .tasks import train_prodigy
 
 
@@ -103,3 +104,32 @@ class Train(models.Model):
     
     class Meta:
         db_table = 'trains'
+
+
+class Prediction(models.Model):
+    """Model for prediction tasks"""
+    model = models.ForeignKey(Model, on_delete=models.DO_NOTHING)
+    collection = models.ForeignKey(Collection, on_delete=models.DO_NOTHING)
+    task = models.OneToOneField(TaskResult, on_delete=models.CASCADE, null=True, blank=True)
+
+    def time_taken(self):
+        """Time taken to run the training task"""
+        return self.task.date_created - self.task.date_done
+    
+    class Meta:
+        db_table = 'predictions'
+
+class PredictionResult(models.Models):
+    """Model for prediction results"""
+    product_id = models.IntegerField(blank=False, null=False)
+    prediction = models.ForeignKey(Prediction)
+    label = models.CharField(blank=False, null=False)
+    topic = models.CharField(blank=False, null=False)
+
+    @property
+    def product(self):
+        return Product.objects.get(pk=self.product_id)
+
+    class Meta:
+        db_table = 'prediction_results'
+

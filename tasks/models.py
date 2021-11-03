@@ -75,32 +75,3 @@ class Session(models.Model):
     
     class Meta:
         db_table = 'session'
-
-# class Prediction(models.Model):
-#     """Model for prediction tasks"""
-#     model = models.ForeignKey(Model, on_delete=models.DO_NOTHING)
-#     collection = models.ForeignKey(Collection, on_delete=models.DO_NOTHING)
-#     task = models.OneToOneField(TaskResult, on_delete=models.CASCADE, null=True, blank=True)
-
-
-#     def time_taken(self):
-#         """Time taken to run the training task"""
-#         return self.task.date_created - self.task.date_done
-    
-#     def start(self):
-#         task = train_prodigy(self.id)
-#         time.sleep(5)
-#         self.refresh_from_db()
-#         return task.id
-    
-#     def terminate(self):
-        
-    
-#     class Meta:
-#         db_table = 'predictions'
-
-# class PredictionResult(models.Models):
-#     prediction = models.ForeignKey(Prediction)
-
-#     class Meta:
-#         db_table = 'prediction_results'
