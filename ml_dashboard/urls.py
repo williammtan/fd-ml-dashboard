@@ -17,10 +17,11 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls import url
 
-from tasks import views
+from .views import index
 
 urlpatterns = [
     url('^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path('', index),
     path('', include('models.urls')),
     path('sessions/', include('tasks.urls')),
     path('collection/', include('collection.urls')),
