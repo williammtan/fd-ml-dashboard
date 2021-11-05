@@ -39,7 +39,7 @@ def prodigy_redirect(request, session_id):
     if session.status != 'Active':
         return HttpResponseNotFound('Session is offline')
 
-    url = settings.SESSION_URL_BASE + str(session.port)
+    url = settings.SESSION_URL_BASE + str(session.port) + '/'
     return redirect(url)
 
 class SessionForm(forms.ModelForm):
