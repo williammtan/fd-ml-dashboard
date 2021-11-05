@@ -1,1 +1,15 @@
 django
+spacy
+prodigy-1.11.4-cp39-cp39-linux_x86_64.whl
+django-taggit
+django-revproxy
+django-celery-results
+django-celery-beat
+celery
+djangorestframework
+djangorestframework-datatables
+django-extensions
+djproxy
+jsonlines
+pymysql
+django-environ

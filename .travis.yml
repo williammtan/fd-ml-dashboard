@@ -1,0 +1,28 @@
+language: generic
+sudo: required
+branches:
+  only:
+  - main
+stages:
+- name: deploy_master
+  if: branch = main
+
+env:
+  global:
+    - CLOUDSDK_CORE_DISABLE_PROMPTS=1
+jobs:
+  include:
+  - stage: deploy_master
+    script:
+    - openssl aes-256-cbc -K $encrypted_39442400e4e0_key -iv $encrypted_39442400e4e0_iv -in deployer.json.enc -out deployer.json -d
+    - curl https://sdk.cloud.google.com > gcloud
+    - bash gcloud --disable-prompts
+    - source $HOME/google-cloud-sdk/path.bash.inc
+    - gcloud components update
+    - gcloud auth activate-service-account --key-file deployer.json
+    - gcloud config set project food-id-app
+
+    - gcloud compute ssh ubuntu@foodml --zone=us-central1-a --strict-host-key-checking=no --tunnel-through-iap --command="tmux kill-session -t 'fd-ml-dashboard' ; tmux new-session -d -s 'fd-ml-dashboard'" # kill the previous session and create a new session
+    - gcloud compute ssh ubuntu@foodml --zone=us-central1-a --strict-host-key-checking=no --tunnel-through-iap --command="cd /home/ubuntu/fd-ml-dashboard && git pull origin main && pip install -r requirements.txt"
+    - gcloud compute ssh ubuntu@foodml --zone=us-central1-a --strict-host-key-checking=no --tunnel-through-iap --command="tmux send-keys -t 'fd-ml-dashboard.0' 'conda activate ml-dashboard' C-m 'python manage.py migrate --database=ml' C-m 'python manage.py runserver' C-m" # activate conda environment, migrate (but don't make migrations), and run server
+
