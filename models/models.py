@@ -34,6 +34,10 @@ class Model(models.Model):
     def save(self, *args, **kwargs):
         if not self.path:
             self.path = self.name
+        
+        if not os.path.isdir(self.file_path):
+            os.makedirs(self.file_path)
+
         super(Model, self).save(*args, **kwargs)
     
     def load(self):

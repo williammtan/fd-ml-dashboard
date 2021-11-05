@@ -1,5 +1,6 @@
 from django.test import TestCase
 import spacy
+import os
 
 from .models import Model
 from labeling.models import Modes
@@ -11,6 +12,13 @@ class ModelTests(TestCase):
         model = Model(name='test model', mode=Modes.NER)
         model.save()
         self.assertEqual(model.path, model.name)
+    
+    def test_create_model_path(self):
+        model = Model(name='test model', mode=Modes.NER, path='test_create_dir')
+        if os.path.isdir(model.file_path):
+            os.rmdir(model.file_path) # remove the dir first
+        model.save()
+        self.assertTrue(os.path.isdir(model.file_path)) # then check if the dir is created
     
     def test_model_tags(self):
         model = Model(name='test model', mode=Modes.NER)
