@@ -1,6 +1,6 @@
 django
 spacy
-prodigy-1.11.4-cp39-cp39-linux_x86_64.whl
+prodigy-1.11.4-cp39-cp39-linux_aarch64.whl
 django-taggit
 django-revproxy
 django-celery-results
