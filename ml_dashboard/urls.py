@@ -16,6 +16,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls import url
+from django.conf import settings
+from django.views.static import serve
 
 from .views import index
 
@@ -27,4 +29,5 @@ urlpatterns = [
     path('collection/', include('collection.urls')),
     path('dataset/', include('labeling.urls')),
     path('admin/', admin.site.urls),
+    url(r'^static/(?P<path>.*)$', serve, {'document_root':settings.STATIC_ROOT})
 ]
