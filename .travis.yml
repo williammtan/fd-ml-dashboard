@@ -24,5 +24,5 @@ jobs:
 
     - gcloud compute ssh ubuntu@foodml --zone=us-central1-a --strict-host-key-checking=no --tunnel-through-iap --command="tmux kill-session -t 'fd-ml-dashboard' ; tmux new-session -d -s 'fd-ml-dashboard'" # kill the previous session and create a new session
     - gcloud compute ssh ubuntu@foodml --zone=us-central1-a --strict-host-key-checking=no --tunnel-through-iap --command="cd /home/ubuntu/fd-ml-dashboard && git pull origin main"
-    - gcloud compute ssh ubuntu@foodml --zone=us-central1-a --strict-host-key-checking=no --tunnel-through-iap --command="tmux send-keys -t 'fd-ml-dashboard.0' 'cd /home/ubuntu/fd-ml-dashboard' C-m 'conda activate ml-dashboard' C-m 'pip install -r requirements.txt' C-m 'python manage.py migrate --database=ml' C-m 'python manage.py runserver 0.0.0.0:8080' C-m" # activate conda environment, migrate (but don't make migrations), and run server
+    - gcloud compute ssh ubuntu@foodml --zone=us-central1-a --strict-host-key-checking=no --tunnel-through-iap --command="tmux send-keys -t 'fd-ml-dashboard.0' 'cd /home/ubuntu/fd-ml-dashboard' C-m 'conda activate ml-dashboard' C-m 'pip install -r requirements.txt' C-m 'python manage.py migrate --database=ml' C-m 'gunicorn ml_dashboard.wsgi -b 0.0.0.0:8080' C-m" # activate conda environment, migrate (but don't make migrations), and run server
 

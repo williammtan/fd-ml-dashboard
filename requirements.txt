@@ -13,3 +13,4 @@ djproxy
 jsonlines
 pymysql
 django-environ
+gunicorn
