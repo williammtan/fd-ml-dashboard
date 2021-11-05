@@ -96,7 +96,10 @@ DATABASES = {
         'USER': env('ML_USER'),
         'PASSWORD': env('ML_PASSWORD'),
         'HOST': env('ML_HOST'),
-        'PORT': env('ML_PORT')
+        'PORT': env('ML_PORT'),
+        'TEST': {
+            'DEPENDENCIES': ['food']
+        }
     },
     'food': {
         'ENGINE': 'django.db.backends.mysql',
@@ -104,7 +107,10 @@ DATABASES = {
         'USER': env('FOOD_USER'),
         'PASSWORD': env('FOOD_PASSWORD'),
         'HOST': env('FOOD_HOST'),
-        'PORT': env('FOOD_PORT')
+        'PORT': env('FOOD_PORT'),
+        'TEST': {
+            'DEPENDENCIES': []
+        }
     }
 }
 
@@ -179,3 +185,23 @@ REST_FRAMEWORK = {
 
 MODEL_DIR = 'data/models/'
 TRAIN_TIMEOUT = 100
+
+import sys
+if 'test' in sys.argv:
+    MODEL_DIR = 'data/tests/models'
+    print('test')
+    DATABASES['ml'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': 'ml_test.db',
+        'TEST': {
+            'DEPENDENCIES': ['food']
+        }
+    }
+
+    DATABASES['food'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': 'food_test.db',
+        'TEST': {
+            'DEPENDENCIES': []
+        }
+    }

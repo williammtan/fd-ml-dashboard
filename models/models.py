@@ -3,8 +3,10 @@ from taggit.managers import TaggableManager
 from django_celery_results.models import TaskResult
 from django.conf import settings
 from django.utils import timezone
+import spacy
 import json
 import time
+import os
 
 from ml_dashboard.celery import app
 from labeling.models import Dataset, Modes
@@ -25,10 +27,21 @@ class Model(models.Model):
     tags = TaggableManager("Model Tags")
     created_at = models.DateTimeField(auto_now_add=True)
 
+    @property
+    def file_path(self):
+        return os.path.join(settings.MODEL_DIR, self.path)
+
     def save(self, *args, **kwargs):
         if not self.path:
             self.path = self.name
         super(Model, self).save(*args, **kwargs)
+    
+    def load(self):
+        """Load spacy model from file"""
+        return spacy.load(self.file_path)
+    
+    def dump(self, nlp):
+        return nlp.to_disk(self.file_path)
 
     def __str__(self):
         return self.name
