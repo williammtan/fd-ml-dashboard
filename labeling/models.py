@@ -38,6 +38,9 @@ class Dataset(models.Model):
     def get_mode(self) -> Modes:
         return Modes[self.mode]
     
+    def get_examples(self):
+        return Example.objects.filter(link__dataset=self)
+    
     def get_collection(self):
         Collection = apps.get_model('collection', 'Collection')
         return Collection.objects.get(pk=self.collection)
