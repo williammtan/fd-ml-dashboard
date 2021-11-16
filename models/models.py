@@ -181,7 +181,7 @@ class Prediction(models.Model):
 
     def time_taken(self):
         """Time taken to run the training task"""
-        return self.task.date_created - self.task.date_done
+        return self.task.date_done - self.task.date_created
     
     class Meta:
         db_table = 'predictions'
