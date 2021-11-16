@@ -103,7 +103,7 @@ class Collection(models.Model):
     
     def product_count(self):
         """Get the number of products in the collection"""
-        return self.categories.aggregate(product_count=Count('product'))['product_count']
+        return Product.objects.filter(product_category__child__product_category__collection=self).count()
 
 class ProductCategoryCollection(models.Model):
     product_category = models.ForeignKey(ProductCategory, models.CASCADE)
