@@ -32,7 +32,7 @@ class TaskSessionBase(Task):
             with jsonlines.open(source_path, 'w') as writer:
                 for p in tqdm(products):
                     writer.write({
-                        'text': p.name + p.description,
+                        'text': p.name + '\n' + p.description,
                         'meta': {
                             'id': p.id,
                             'category': p.product_category.name
