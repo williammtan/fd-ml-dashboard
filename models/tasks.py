@@ -106,6 +106,8 @@ def prediction(self, prediction_id):
     nlp = self.prediction.model.load()
 
     with transaction.atomic(using='ml'):
+        self.prediction.results.delete()
+
         for p in products:
             text = p.name + '\n' + p.description
             label_dict = self.PREDICT_FUNCTIONS[self.prediction.model.mode](self, nlp, text, label=self.prediction.meta.get('label'))
