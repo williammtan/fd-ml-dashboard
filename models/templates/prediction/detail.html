@@ -1,0 +1,83 @@
+{% extends 'base.html' %} {% block content %}
+
+<title>{{ prediction.name }}</title>
+<h1 class="mt-4">Prediction Session</h1>
+<!-- <ol class="breadcrumb mb-4">
+  <li class="breadcrumb-item active" style="text-transform: capitalize;">{{ prediction.name }}</li>
+</ol> -->
+
+<table class="table table-striped table-product">
+  <tbody>
+    <tr>
+        <th>Collection</td>
+        <td><code><a href="/collection/{{ prediction.get_collection.id }}">{{ prediction.get_collection.name }}</a></code></td>
+    </tr>
+    <tr>
+        <th>Model</td>
+        <td><code><a href="/models/{{ prediction.model.id }}">{{ prediction.model.name }}</a></code></td>
+    </tr>
+    <tr>
+        <th>Status</td>
+        <td>
+            <b
+                class="
+                {% if prediction.status == 'Pending' %}
+                text-info
+                {% elif prediction.status == 'Running' %}
+                text-warning
+                {% elif prediction.status == 'Done' %}
+                text-success
+                {% elif prediction.status == 'Failed' or prediction.status == 'Cancelled' %}
+                text-danger
+                {% elif prediction.status == 'Not Started' %}
+                text-muted
+                {% endif %}
+                "
+            >{{prediction.status}}</b>
+        </td>
+    </tr>
+    <tr>
+        <th>Input Meta</td>
+        <td>
+            <code>
+                <pre>{{ prediction.get_meta }}</pre>
+            </code>
+        </td>
+    </tr>
+    {% if prediction.status == 'Done' or prediction.status == 'Failed' or prediction.status == 'Cancelled' %}
+    <tr>
+        <th>Time took</td>
+        <td>
+            <code>
+                <pre>{{ prediction.time_taken.seconds }} sec</pre>
+            </code>
+        </td>
+    </tr>
+    {% endif %}
+  </tbody>
+</table>
+<br />
+
+{% if prediction.status == 'Done' %}
+<div class="embed-responsive embed-responsive-16by9">
+    <iframe height="300" width="700" src="/prediction/{{ prediction.id }}/results/0" title="results"></iframe>
+</div>
+{% endif %}
+<br />
+
+<div class="float-end vertical-align">
+    {% if not prediction.task %}
+        <a class="btn btn-primary" href="/prediction/{{ prediction.id }}/start">Start Session</a>
+    {% endif %}
+
+    {% if prediction.status == 'Done' %}
+        <!-- <a class="btn btn-success" href="/sessions/{{ session.id }}/prodigy">Join Session</a> -->
+        <a class="btn btn-success" href="/prediction/{{ prediction.id }}/start">Rerun Session</a>
+    {% elif prediction.status == 'Running' or prediction.status == 'Pending' %}
+        <a class="btn btn-danger" href="/prediction/{{ prediction.id }}/stop">Cancel Session</a>
+    {% elif prediction.status == 'Failed' or prediction.status == 'Cancelled' %}
+        <a class="btn btn-danger" href="/prediction/{{ prediction.id }}/start">Retry Session</a>
+    {% endif %}
+</div>
+
+{% endblock %}
