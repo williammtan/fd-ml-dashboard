@@ -106,7 +106,7 @@ def prediction(self, prediction_id):
     nlp = self.prediction.model.load()
 
     with transaction.atomic(using='ml'):
-        self.prediction.results.delete()
+        self.prediction.results.all().delete()
 
         for p in products:
             text = p.name + '\n' + p.description
