@@ -185,11 +185,14 @@ REST_FRAMEWORK = {
 
 MODEL_DIR = 'data/models/'
 TRAIN_TIMEOUT = 100
+PREDICTION_TIMEOUT = 300
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+
+TEST_MODEL_DIR = 'data/tests/models'
+TEST_SOURCE_DIR = 'data/tests/source'
 
 import sys
 if 'test' in sys.argv:
-    MODEL_DIR = 'data/tests/models'
-    print('test')
     DATABASES['ml'] = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': 'ml_test.db',

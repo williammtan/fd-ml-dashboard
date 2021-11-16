@@ -1,10 +1,14 @@
-from django.test import TestCase
+from django.test import TestCase, override_settings
+from django.conf import settings
+from celery.result import AsyncResult
 import spacy
 import os
 
-from .models import Model
+from .models import Model, Prediction, PredictionResult
+from collection.models import Collection, Product
 from labeling.models import Modes
 
+@override_settings(MODEL_DIR=settings.TEST_MODEL_DIR, SOURCE_DIR=settings.TEST_SOURCE_DIR)
 class ModelTests(TestCase):
     databases = ['ml', 'food']
 
@@ -50,3 +54,45 @@ class ModelTests(TestCase):
         new_nlp = model.load() # test loading
         self.assertTrue(self.is_nlp_identical(nlp, new_nlp))
     
+
+@override_settings(MODEL_DIR=settings.TEST_MODEL_DIR, SOURCE_DIR=settings.TEST_SOURCE_DIR)
+class PredictionModelTests(TestCase):
+    databases = {'ml', 'food'}
+    fixtures = ['collection_fixtures',]
+
+    def setUp(self):
+        print(Product._meta.managed)
+        self.collection = Collection.objects.get(pk=1) # load collection fixtures
+        print(self.collection)
+    
+    def test_pass(self):
+        self.assertEqual(1,1)
+
+    # def test_prediction_ner(self):
+    #     model = Model(name='test_ner_model', path=os.path.join(settings.TEST_SOURCE_DIR, 'buah_sayur_model'), mode=Modes.NER)
+    #     model.save()
+
+    #     prediction = Prediction(model=model, collection_id=self.collection.id)
+    #     prediction.start()
+    #     self.assertIsNotNone(prediction.task) # this might check if the task is never run, or might be waiting in some queue
+
+    #     prediction_task = AsyncResult(prediction.task.task_id)
+    #     prediction_task.get() # wait until finish
+
+    #     prediction_result = prediction.prediction_result_choice.all()
+    #     self.assertNotEqual(len(prediction_result), 0) # assert not empty results
+    
+#     def test_prediction_textcat(self):
+#         model = Model(name='test_ner_model', path=os.path.join(settings.TEST_SOURCE_DIR, 'buah_sayur_model'), mode=Modes.TEXTCAT)
+#         model.save()
+
+#         prediction = Prediction(model=model, collection_id=self.collection.id)
+#         prediction.start()
+#         self.assertIsNotNone(prediction.task) # this might check if the task is never run, or might be waiting in some queue
+
+#         prediction_task = AsyncResult(prediction.task.task_id)
+#         prediction_task.get() # wait until finish
+
+#         prediction_result = prediction.prediction_result_choice.all()
+#         self.assertNotEqual(len(prediction_result), 0) # assert not empty results
+
