@@ -64,7 +64,69 @@ class Dataset(models.Model):
 class Example(models.Model):
     input_hash = models.IntegerField()
     task_hash = models.IntegerField()
-    content = models.BinaryField()
+    content = models.JSONField()
+
+    def get_results(self):
+        results = []
+
+        if self.content['answer'] == 'accept':
+
+            # add ner labels
+            if self.content.get('spans') is not None:
+                if self.content.get('tokens') is None:
+                    return
+                
+                tokens = [t['text'] for t in self.content['tokens']]
+                for span in self.content['spans']:
+                    if span.get('token_start') is None or span.get('token_end') is None:
+                        continue
+
+                    topic_name = ' '.join(tokens[span['token_start']:span['token_end']+1])
+
+                    results.append({
+                        "topic": topic_name,
+                        "label": span['label'].strip().lower(),
+                    })
+            
+            # add classification labels
+            if self.content.get('options') is not None:
+                classes = self.clean_classes(self.content['options'])
+
+                for label_id in self.content['accept']:
+                    topic_name = [c['text'] for c in classes if c['id'] == label_id][0]
+
+                    results.append({
+                        "topic": topic_name,
+                        "label": None,
+                    })
+            if self.content.get('user_input') is not None:
+                for topic_name in self.content['user_input'].split('\n'):
+
+                    results.append({
+                        "topic": topic_name,
+                        "label": None,
+                    })
+        
+        # binary classification labels, skip if self.content['answer'] == 'accept'
+        if self.content.get('label') is not None:
+            label = self.content['label']
+
+            if self.content['answer'] == 'accept':
+                answer = 1
+            elif self.content['answer'] == 'reject':
+                answer = 0
+            
+            results.append({
+                "topic": answer, # 1 or 0
+                "label": label,
+            })
+    
+        return results
+    
+    def get_product(self):
+        meta = self.content.get('meta')
+        if meta and type(meta) == dict:
+            return meta.get('id')
 
     class Meta:
         db_table = 'example'

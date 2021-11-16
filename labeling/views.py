@@ -1,8 +1,10 @@
 from django.shortcuts import render
 from django.views import generic
 from django import forms
+from django.http import HttpResponseNotFound
+from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
-from collection.models import Collection
+from collection.models import Collection, Product
 from .models import Dataset
 from django.forms.models import model_to_dict
 
@@ -49,4 +51,21 @@ class CreateView(generic.edit.CreateView):
     def get_success_url(self):
         return reverse_lazy('labeling:detail', kwargs={'pk': self.object.id})
 
-    
+
+def dataset_results(request, dataset_id, result_idx):
+    """Render dataset results per product"""
+    dataset = get_object_or_404(Dataset, pk=dataset_id)
+    examples = dataset.get_examples()
+    if len(examples) == 0:
+        return HttpResponseNotFound('No results')
+
+    index = max(min(result_idx, len(examples)-1), 0) # clamp the values to the list
+    example = examples[index]
+    try:
+        product = Product.objects.get(pk=example.get_product())
+    except (KeyError, Product.DoesNotExist):
+        return HttpResponseNotFound('No product_id for this example')
+
+    result = example.get_results()
+    return render(request, 'dataset/result.html', {'dataset': dataset, 'results': result, 'product': product, 'next': index + 1 if index != len(examples)-1 else None, 'previous': index-1 if index != 0 else None, 'idx': index})
+

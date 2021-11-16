@@ -1,0 +1,55 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" />
+    <link href="{% static 'theme/css/styles.css' %}" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+</head>
+
+<title>Dataset results</title>
+<style>
+    .close-chip {
+        float: right;
+        font-size: 16px;
+        line-height: 32px;
+        padding-left: 8px;
+        color: #000;
+        text-shadow: 0 1px 0 #fff;
+        opacity: .2;
+        font-weight: 700;
+    }
+</style>
+<body>
+    <div class="container-fluid px-4 py-4">
+        {% for result in results %}
+        <div class="chip">
+            {{ result.topic }}
+            <i class="close-chip material-icons" onclick="function t(){}; t();">{{ result.label }}</i>
+        </div>
+        {% endfor %}
+        <h1>{{ product.name }}</h1> <h2>{{ product.description }}</h2>
+        <ul class="pagination justify-content-end">
+            {% if previous or previous == 0 %}
+                <li class="page-item">
+                    <a class="page-link" href="{% url 'labeling:results' dataset.id previous %}" tabindex="-1">Previous</a>
+                </li>
+            {% endif %}
+            <li class="page-item"><a class="page-link" href="#">{{ index }}</a></li>
+            {% if next %}
+                <li class="page-item">
+                    <a class="page-link" href="{% url 'labeling:results' dataset.id next %}">Next</a>
+                </li>
+            {% endif %}
+        </ul>
+    </div>
+</body>
+

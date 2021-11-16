@@ -60,6 +60,12 @@
 </table>
 {% endif %}
 
+{% if dataset.get_examples %}
+<div class="embed-responsive embed-responsive-16by9">
+    <iframe height="300" width="700" src="/dataset/{{ dataset.id }}/results/0" title="results"></iframe>
+</div>
+{% endif %}
+
 <br>
 
 {% endblock %}
