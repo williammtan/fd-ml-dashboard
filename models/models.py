@@ -11,7 +11,7 @@ import os
 from ml_dashboard.celery import app
 from labeling.models import Dataset, Modes
 from collection.models import Collection, Product
-from .tasks import train_prodigy
+from .tasks import train_prodigy, prediction
 
 
 class Model(models.Model):
@@ -42,7 +42,10 @@ class Model(models.Model):
     
     def load(self):
         """Load spacy model from file"""
-        return spacy.load(self.file_path)
+        try:
+            return spacy.load(self.file_path)
+        except OSError:
+            return spacy.load(os.path.join(self.file_path, 'model-best'))
     
     def dump(self, nlp):
         return nlp.to_disk(self.file_path)
@@ -126,12 +129,55 @@ class Train(models.Model):
 class Prediction(models.Model):
     """Model for prediction tasks"""
     model = models.ForeignKey(Model, on_delete=models.DO_NOTHING)
-    collection_id = models.IntegerField(null=False, blank=False)
+    collection = models.IntegerField(null=False, blank=False)
     task = models.OneToOneField(TaskResult, on_delete=models.CASCADE, null=True, blank=True)
+    meta = models.JSONField(default=dict, blank=True) # might contain "label": "some label for classification"
+    created_at = models.DateTimeField(auto_now_add=True)
 
+    class Statuses(models.TextChoices):
+        not_started = 'Not Started'
+        pending = 'Pending'
+        running = 'Running'
+        failed = 'Failed'
+        cancelled = 'Cancelled'
+        done = 'Done'
+
+    def start(self):
+        task = prediction.delay(self.id)
+        time.sleep(5)
+        self.refresh_from_db()
+        return task.id
+
+    def close(self):
+        """Terminate prediction"""
+        task_id = self.task.task_id
+        app.control.revoke(task_id, terminate=True)
+        time.sleep(2)
+        self.refresh_from_db()
+    
     @property
-    def collection(self):
-        return Collection.objects.get(pk=self.collection_id)
+    def status(self):
+        if self.task is not None:
+            if self.task.status == 'PENDING':
+                return self.Statuses.pending
+            elif self.task.status == 'PROGRESS':
+                return self.Statuses.running
+            elif self.task.status == 'SUCCESS':
+                return self.Statuses.done
+            elif self.task.status == 'FAILURE':
+                return self.Statuses.failed
+            elif self.task.status == 'REVOKED':
+                return self.Statuses.cancelled
+        elif (timezone.now() - self.created_at).seconds > settings.PREDICTION_TIMEOUT:
+            return self.Statuses.failed
+        else:
+            return self.Statuses.not_started
+    
+    def get_meta(self):
+        return json.dumps(self.meta, indent=4, sort_keys=True)
+
+    def get_collection(self):
+        return Collection.objects.get(pk=self.collection)
 
     def time_taken(self):
         """Time taken to run the training task"""
@@ -143,7 +189,7 @@ class Prediction(models.Model):
 class PredictionResult(models.Model):
     """Model for prediction results"""
     product_id = models.IntegerField(blank=False, null=False)
-    prediction = models.ForeignKey(Prediction, on_delete=models.CASCADE)
+    prediction = models.ForeignKey(Prediction, on_delete=models.CASCADE, related_name='results')
     label = models.CharField(max_length=100, blank=False, null=False)
     topic = models.CharField(max_length=100, blank=False, null=False)
 
