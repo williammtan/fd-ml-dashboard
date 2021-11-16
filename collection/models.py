@@ -99,7 +99,7 @@ class Collection(models.Model):
         return Dataset.objects.filter(collection=self.id)
     
     def product_choice(self):
-        return Product.objects.filter(product_category__collection=self)
+        return Product.objects.filter(product_category__child__product_category__collection=self)
     
     def product_count(self):
         """Get the number of products in the collection"""
