@@ -184,6 +184,8 @@ def prediction_results(request, prediction_id, result_idx):
     """Render prediction results per product"""
     prediction = get_object_or_404(Prediction, pk=prediction_id)
     product_ids = prediction.results.values_list('product_id').distinct()
+    if len(product_ids) == 0:
+        return HttpResponseNotFound('No results')
     index = max(min(result_idx, len(product_ids)-1), 0) # clamp the values to the list
     results = prediction.results.filter(product_id=product_ids[index][0])
     product = results.first().product
