@@ -3,12 +3,15 @@ from taggit.managers import TaggableManager
 from django_celery_results.models import TaskResult
 from django.conf import settings
 from django.utils import timezone
+import spacy
 import json
 import time
+import os
 
 from ml_dashboard.celery import app
 from labeling.models import Dataset, Modes
-from .tasks import train_prodigy
+from collection.models import Collection, Product
+from .tasks import train_prodigy, prediction
 
 
 class Model(models.Model):
@@ -24,10 +27,28 @@ class Model(models.Model):
     tags = TaggableManager("Model Tags")
     created_at = models.DateTimeField(auto_now_add=True)
 
+    @property
+    def file_path(self):
+        return os.path.join(settings.MODEL_DIR, self.path)
+
     def save(self, *args, **kwargs):
         if not self.path:
             self.path = self.name
+        
+        if not os.path.isdir(self.file_path):
+            os.makedirs(self.file_path)
+
         super(Model, self).save(*args, **kwargs)
+    
+    def load(self):
+        """Load spacy model from file"""
+        try:
+            return spacy.load(self.file_path)
+        except OSError:
+            return spacy.load(os.path.join(self.file_path, 'model-best'))
+    
+    def dump(self, nlp):
+        return nlp.to_disk(self.file_path)
 
     def __str__(self):
         return self.name
@@ -103,3 +124,79 @@ class Train(models.Model):
     
     class Meta:
         db_table = 'trains'
+
+
+class Prediction(models.Model):
+    """Model for prediction tasks"""
+    model = models.ForeignKey(Model, on_delete=models.DO_NOTHING)
+    collection = models.IntegerField(null=False, blank=False)
+    task = models.OneToOneField(TaskResult, on_delete=models.CASCADE, null=True, blank=True)
+    meta = models.JSONField(default=dict, blank=True) # might contain "label": "some label for classification"
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Statuses(models.TextChoices):
+        not_started = 'Not Started'
+        pending = 'Pending'
+        running = 'Running'
+        failed = 'Failed'
+        cancelled = 'Cancelled'
+        done = 'Done'
+
+    def start(self):
+        task = prediction.delay(self.id)
+        time.sleep(5)
+        self.refresh_from_db()
+        return task.id
+
+    def close(self):
+        """Terminate prediction"""
+        task_id = self.task.task_id
+        app.control.revoke(task_id, terminate=True)
+        time.sleep(2)
+        self.refresh_from_db()
+    
+    @property
+    def status(self):
+        if self.task is not None:
+            if self.task.status == 'PENDING':
+                return self.Statuses.pending
+            elif self.task.status == 'PROGRESS':
+                return self.Statuses.running
+            elif self.task.status == 'SUCCESS':
+                return self.Statuses.done
+            elif self.task.status == 'FAILURE':
+                return self.Statuses.failed
+            elif self.task.status == 'REVOKED':
+                return self.Statuses.cancelled
+        elif (timezone.now() - self.created_at).seconds > settings.PREDICTION_TIMEOUT:
+            return self.Statuses.failed
+        else:
+            return self.Statuses.not_started
+    
+    def get_meta(self):
+        return json.dumps(self.meta, indent=4, sort_keys=True)
+
+    def get_collection(self):
+        return Collection.objects.get(pk=self.collection)
+
+    def time_taken(self):
+        """Time taken to run the training task"""
+        return self.task.date_created - self.task.date_done
+    
+    class Meta:
+        db_table = 'predictions'
+
+class PredictionResult(models.Model):
+    """Model for prediction results"""
+    product_id = models.IntegerField(blank=False, null=False)
+    prediction = models.ForeignKey(Prediction, on_delete=models.CASCADE, related_name='results')
+    label = models.CharField(max_length=100, blank=False, null=False)
+    topic = models.CharField(max_length=100, blank=False, null=False)
+
+    @property
+    def product(self):
+        return Product.objects.get(pk=self.product_id)
+
+    class Meta:
+        db_table = 'prediction_results'
+

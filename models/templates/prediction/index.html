@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<title>Sessions</title>
+
+<div class="d-flex align-items-center justify-content-between">
+    <div class="float-start">
+        <h1 class="mt-4">Prediction sessions</h1>
+    </div>
+    <div class="float-end vertical-align">
+        <a class="btn btn-success" href="/prediction/new">New Prediction</a>
+    </div>
+</div>
+
+
+{% if prediction_list %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Model</th>
+                <th scope="col">Collection</th>
+                <th scope="col">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for prediction in prediction_list %}
+                <tr>
+                    <th scope="row"><a href="/prediction/{{ prediction.id }}">{{ prediction.id }}</a></th>
+                    <td>{{ prediction.model.name }}</td>
+                    <td><a href="/collection/{{ prediction.get_collection.id }}">{{ prediction.get_collection }}</a></td>
+                    <td>
+                        <b
+                            class="
+                            {% if prediction.status == 'Pending' %}
+                            text-info
+                            {% elif prediction.status == 'Running' %}
+                            text-warning
+                            {% elif prediction.status == 'Done' %}
+                            text-success
+                            {% elif prediction.status == 'Failed' or prediction.status == 'Cancelled' %}
+                            text-danger
+                            {% elif prediction.status == 'Not Started' %}
+                            text-muted
+                            {% endif %}
+                            "
+                        >{{prediction.status}}</b>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="float-end">
+        {% include 'pagination.html' %}
+    </div>
+{% else %}
+    <p>No prediction sessions are available.</p>
+{% endif %}
+
+{% endblock %}

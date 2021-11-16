@@ -1,0 +1,152 @@
+[
+    {
+        "model": "collection.ProductCategory",
+        "pk": 2,
+        "fields": {
+            "name": "Buah",
+            "slug": "buah",
+            "description": "buah description",
+            "is_active": 1,
+            "level": 1
+        }
+    },
+    {
+        "model": "collection.ProductCategory",
+        "pk": 1,
+        "fields": {
+            "name": "Sayur",
+            "slug": "sayur",
+            "description": "sayur description",
+            "is_active": 1,
+            "level": 1
+        }
+    },
+    {
+        "model": "collection.Outlets",
+        "pk": 1,
+        "fields": {
+            "name": "hehe outlet",
+            "slug": "hehe-outlet"
+        }
+    },
+    {
+        "model": "collection.Product",
+        "pk": 1,
+        "fields": {
+            "outlet_id": 1,
+            "product_category_id": 1,
+            "name": "Sayuran Hidroponik",
+            "description": "Harga sayuran hidroponik 5000/iket\nUntuk harga madu bervariasi.\nInsaallah lebih sehat untuk dikonsumsi",
+            "slug": "sayuran-hidroponik-gw3KT4WFTC",
+            "weight": 500,
+            "stock": 10,
+            "is_wholesale": 0,
+            "is_active": 1,
+            "is_deleted": 0
+        }
+    },
+    {
+        "model": "collection.Product",
+        "pk": 2,
+        "fields": {
+            "outlet_id": 1,
+            "product_category_id": 1,
+            "name": "Bayam Hidroponik",
+            "description": "Bayam hidroponik dipanen langsung dari kebun sebelum dikirim\nditanam dalam greenhouse, tanpa menggunakan pestisida, insyaa Allah lebih bersih dan lebih sehat\n\nHarga tercantum adalah untuk kemasan @ 200-250 gram",
+            "slug": "bayam-hidroponik-rtbV7taUpC",
+            "weight": 300,
+            "stock": 10,
+            "is_wholesale": 0,
+            "is_active": 1,
+            "is_deleted": 0
+        }
+    },
+    {
+        "model": "collection.Product",
+        "pk": 3,
+        "fields": {
+            "outlet_id": 1,
+            "product_category_id": 1,
+            "name": "Pakcoy Hidroponik",
+            "description": "Pakcoy hidroponik\nHidup sehat bersama TAWA farm\n\n*harga per netpot",
+            "slug": "pakcoy-hidroponik-fgKvcKVdLH",
+            "weight": 50,
+            "stock": 10,
+            "is_wholesale": 0,
+            "is_active": 1,
+            "is_deleted": 0
+        }
+    },
+    {
+        "model": "collection.Product",
+        "pk": 4,
+        "fields": {
+            "outlet_id": 1,
+            "product_category_id": 1,
+            "name": "Bayam Merah Hidroponik",
+            "description": "Bayam merah hidroponik\nJaminan sehat di masa pandemi\n\n#tawafarm",
+            "slug": "bayam-merah-hidroponik-IpJohsnu3y",
+            "weight": 50,
+            "stock": 15,
+            "is_wholesale": 0,
+            "is_active": 1,
+            "is_deleted": 0
+        }
+    },
+    {
+        "model": "collection.Product",
+        "pk": 5,
+        "fields": {
+            "outlet_id": 1,
+            "product_category_id": 1,
+            "name": "Fresh Tempeh",
+            "description": "Tempe dengan ukuran sedang, Bergizi, Dibuat dengan 98% kacang kedelai pilihan dan 2% Ragi berqualitas, Tanpa bahan pengawet, Terjaga kualitasnya sampai ketangan konsumen",
+            "slug": "fresh-tempeh-AghGdSqvBX",
+            "weight": 8,
+            "stock": 1000,
+            "is_wholesale": 0,
+            "is_active": 1,
+            "is_deleted": 0
+        }
+    },
+    {
+        "model": "collection.Product",
+        "pk": 6,
+        "fields": {
+            "outlet_id": 1,
+            "product_category_id": 2,
+            "name": "Lemon California",
+            "description": "Lemon California segar dengan harga jual per kilogram",
+            "slug": "lemon-california-CEF1RrLWuX",
+            "weight": 1000,
+            "stock": 100,
+            "is_wholesale": 0,
+            "is_active": 0,
+            "is_deleted": 0
+        }
+    },
+    {
+        "model": "collection.ProductCategoryCollection",
+        "pk": 1,
+        "fields": {
+            "product_category": 1,
+            "product_collection_group": 1
+        }
+    },
+    {
+        "model": "collection.ProductCategoryCollection",
+        "pk": 1,
+        "fields": {
+            "product_category": 2,
+            "product_collection_group": 1
+        }
+    },
+    {
+        "model": "collection.Collection",
+        "pk": 1,
+        "fields": {
+            "name": "buah_sayur_test",
+            "description": "blah blah some stuff about buah and sayur"
+        }
+    }
+]
