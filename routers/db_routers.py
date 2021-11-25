@@ -8,7 +8,7 @@ logger = get_logger(__name__)
 debug, info, warning = logger.debug, logger.info, logger.warning
 
 class FoodRouter:
-    route_app_labels = {'collection'}
+    route_app_labels = {'collection', 'recommendation'}
 
     def db_for_read(self, model, **hints):
         if model._meta.app_label in self.route_app_labels:

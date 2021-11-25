@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'collection',
     'labeling.apps.LabelingConfig',
     'models',
+    'recommendation',
     'tasks.apps.TasksConfig',
     'revproxy',
     'rest_framework',
@@ -191,6 +192,8 @@ X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 TEST_MODEL_DIR = 'data/tests/models'
 TEST_SOURCE_DIR = 'data/tests/source'
+
+SERVICE_ACCOUNT_PATH = env('SERVICE_ACCOUNT_PATH')
 
 import sys
 if 'test' in sys.argv:
