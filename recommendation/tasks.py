@@ -12,6 +12,7 @@ from google.cloud import bigquery
 from google.oauth2 import service_account
 from django.conf import settings
 from django.db import connections, transaction
+from django.db import close_old_connections
 
 from .models import TopicRecommendation
 
@@ -186,8 +187,9 @@ def get_product_topics(item_id_mapping, min_count=5, sbert_model='paraphrase-mul
 
     return sparse.csr_matrix(product_topic_similarity), product_topics, topics
 
-@shared_task
-def topic_recommendation(num_recommendations=10, num_bigram=4, min_count=5):
+@shared_task(bind=True)
+def topic_recommendation(self, num_recommendations=10, num_bigram=4, min_count=5):
+    self.update_state(state='PROGRESS')
     products = pd.read_sql('SELECT id, name, description FROM products', connections['food'])
     
     def recommend(user_idx, k=10):
@@ -316,8 +318,8 @@ def topic_recommendation(num_recommendations=10, num_bigram=4, min_count=5):
     
     final_recommendations = recommendations.groupby('user_id').head(num_recommendations-num_bigram).append(recommendations_bigram.groupby('user_id').head(num_bigram)).drop_duplicates(subset=['user_id', 'keyword'])
     final_recommendations['user_id'] = final_recommendations['user_id'].map(user_id_mapping)
-    return final_recommendations
 
+    close_old_connections()
     with transaction.atomic(using='food'):
         TopicRecommendation.objects.all().delete()
 
