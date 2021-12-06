@@ -194,6 +194,7 @@ TEST_MODEL_DIR = 'data/tests/models'
 TEST_SOURCE_DIR = 'data/tests/source'
 
 SERVICE_ACCOUNT_PATH = env('SERVICE_ACCOUNT_PATH')
+MONGO_URI = env('MONGO_URI')
 
 import sys
 if 'test' in sys.argv:

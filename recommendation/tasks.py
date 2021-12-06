@@ -13,6 +13,7 @@ from google.oauth2 import service_account
 from django.conf import settings
 from django.db import connections, transaction
 from django.db import close_old_connections
+from pymongo import MongoClient
 
 from .models import TopicRecommendation
 
@@ -20,6 +21,8 @@ credentials = service_account.Credentials.from_service_account_file(
     settings.SERVICE_ACCOUNT_PATH, scopes=["https://www.googleapis.com/auth/cloud-platform"]
 )
 bqclient = bigquery.Client(credentials=credentials, project=credentials.project_id,)
+
+conn = MongoClient(settings.MONGO_URI)['foodid-prod']
 
 DEFAULT_EVENT_WEIGHTS = {
     'view_item': 1,
@@ -186,6 +189,104 @@ def get_product_topics(item_id_mapping, min_count=5, sbert_model='paraphrase-mul
         product_topic_similarity[pid, pt.topic_id] = pt['weight']
 
     return sparse.csr_matrix(product_topic_similarity), product_topics, topics
+
+def get_user_search(topics, user_id_mapping, log=3):
+    """Queries the MongoDB database for user queries
+    Args:
+        topics - pd.DataFrame with columns id, name, idx, embedding (output from get_product_topics())
+        user_id_mapping - mapping for users to use
+        log - log base for no. hits (defaults to 3)
+
+    Returns:
+        user_search - pd.DataFrame with columns _id, user_id (user index), key (preprocessed with lower() and strip()), hits, created_at, updated_at
+        keywords - pd.DataFrame with columns id (generated from index), key, hits, weight (log2 weight from no. hits), topics (list of topics ids found in the keyword)
+    """
+    cursor = conn['user_recent_search'].find()
+    user_search = pd.DataFrame(list(cursor))
+    user_search['key'] = user_search['key'].str.lower()
+    user_search['key'] = user_search['key'].str.strip()
+    user_search['user_id'] = user_search['user_id'].map({v:k for k,v in user_id_mapping.items()})
+    user_search = user_search.dropna()
+    user_search['user_id'] = user_search['user_id'].astype(int)
+
+    topic_clean = topics[topics.name.str.len() > 2]
+
+    keywords = user_search[['key', 'hits',]].groupby(['key']).sum().sort_values(by='hits', ascending=False).reset_index()
+    keywords['topics'] = keywords.key.apply(lambda x: [id for id, name in zip(topic_clean.idx, topic_clean.name) if name in x])
+    keywords = keywords[keywords.topics.apply(lambda x: len(x) != 0)].reset_index(drop=True)
+    keywords['id'] = keywords.index
+    keywords['weight'] = np.log(keywords['hits']) / np.log(3)
+
+    return user_search, keywords
+
+@shared_task(bind=True)
+def topic_recommendation_search(self, num_recommendations=10, min_count=5, max_same_topics=3, alpha=3): # alpha is a hyperparameter associated with the log weight of keyword hits
+    self.update_state(state='PROGRESS')
+    user_interactions, user_interactions_sparse, user_id_mapping, item_id_mapping = get_user_interaction()
+    product_topic_sparse, product_topics, topics = get_product_topics(item_id_mapping=item_id_mapping, min_count=min_count)
+    user_topic_interactions = np.matmul(user_interactions_sparse.toarray(), product_topic_sparse.toarray())
+    user_search, keywords = get_user_search(topics, user_id_mapping, log=alpha)
+
+    topic_keyword_sparse = sparse.csr_matrix((len(topics), len(keywords)))
+    for id, k in keywords.iterrows():
+        for t in k.topics:
+            topic_keyword_sparse[t, id] = k.weight
+    
+    for i, search in user_search.merge(keywords, on='key').iterrows():
+        for t in search.topics:
+            user_topic_interactions[search.user_id, t] += search.weight * search.hits_x # add additional weight from user's search
+    
+    user_keyword_sparse = np.matmul(user_topic_interactions, topic_keyword_sparse.toarray())
+
+    def recommend(user_idx, top_k=10, max_same_topics=3):
+    
+        keywords['user_pred'] = user_keyword_sparse[user_idx]
+        preds = keywords[keywords['user_pred'] > 0].sort_values(by='user_pred', ascending=False)
+
+        keys = []
+        counter = {}
+        for _, p in preds.iterrows():
+            skip = False
+            for t in p.topics:
+                if counter.get(t, 0) > max_same_topics:
+                    skip = True
+            
+            if not skip:
+                for t in p.topics:
+                    counter[t] = counter.get(t, 0) + 1 # increment counter
+                
+                keys.append([p.key, p.user_pred])
+        
+        return keys[:top_k]
+    
+    recommendations = pd.DataFrame([
+        {
+            'user_id': user_id,
+            'keyword': rec[0],
+            'prob': rec[1]
+        }
+        for user_id in tqdm(range(len(user_id_mapping)))
+        for rec in recommend(user_id, num_recommendations, max_same_topics)
+    ])
+
+    min_max_scaler = MinMaxScaler()
+    for user_id, recs in recommendations.groupby('user_id'):
+        recs['prob'] = min_max_scaler.fit_transform(recs['prob'].values.reshape(-1, 1))
+        for i, r in recs.iterrows():
+            recommendations.loc[i, 'prob'] = r['prob']
+    
+    recommendations['user_id'] = recommendations['user_id'].map(user_id_mapping)
+
+    close_old_connections()
+    with transaction.atomic(using='food'):
+        TopicRecommendation.objects.all().delete()
+
+        topic_recommendations = [
+            TopicRecommendation(user_id=row['user_id'], keyword=row['keyword'], confidence=row['prob'])
+            for i, row in recommendations.iterrows()
+        ]
+        recs = TopicRecommendation.objects.bulk_create(topic_recommendations)
+
 
 @shared_task(bind=True)
 def topic_recommendation(self, num_recommendations=10, num_bigram=4, min_count=5):
