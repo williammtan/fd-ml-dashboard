@@ -18,4 +18,6 @@ urlpatterns = [
     path('prediction/<int:prediction_id>/stop/', views.stop_prediction, name='stop_prediction'),
     path('prediction/new/', views.CreatePredictionView.as_view(), name='create_prediction'),
     path('prediction/<int:prediction_id>/results/<int:result_idx>', views.prediction_results, name='prediction_results'),
+    path('prediction/<int:prediction_id>/start-commit/', views.start_commit_prediction, name='start_commit_prediction'),
+    path('prediction/<int:prediction_id>/stop-commit/', views.stop_commit_prediction, name='stop_commit_prediction'),
 ]

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Model, Train
+from .models import Model, Prediction, Train
 
 class MultiDBModelAdmin(admin.ModelAdmin):
     # A handy constant for the name of the alternate database.
@@ -29,3 +29,4 @@ class MultiDBModelAdmin(admin.ModelAdmin):
 
 admin.site.register(Model, MultiDBModelAdmin)
 admin.site.register(Train, MultiDBModelAdmin)
+admin.site.register(Prediction, MultiDBModelAdmin)

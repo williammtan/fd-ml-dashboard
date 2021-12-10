@@ -11,8 +11,7 @@ import os
 from ml_dashboard.celery import app
 from labeling.models import Dataset, Modes
 from collection.models import Collection, Product
-from .tasks import train_prodigy, prediction
-
+from .tasks import train_prodigy, prediction, commit_predictions
 
 class Model(models.Model):
     name = models.CharField(max_length=100, blank=False, null=False)
@@ -132,6 +131,7 @@ class Prediction(models.Model):
     collection = models.IntegerField(null=False, blank=False)
     task = models.OneToOneField(TaskResult, on_delete=models.CASCADE, null=True, blank=True)
     meta = models.JSONField(default=dict, blank=True) # might contain "label": "some label for classification"
+    commit_task = models.OneToOneField(TaskResult, on_delete=models.CASCADE, null=True, blank=True, related_name='commit_task')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Statuses(models.TextChoices):
@@ -155,6 +155,18 @@ class Prediction(models.Model):
         time.sleep(2)
         self.refresh_from_db()
     
+    def start_commit(self):
+        task = commit_predictions.delay(self.id)
+        time.sleep(5)
+        self.refresh_from_db()
+    
+    def close(self):
+        """Terminate commit_prediction"""
+        task_id = self.commit_task.task_id
+        app.control.revoke(task_id, terminate=True)
+        time.sleep(2)
+        self.refresh_from_db()
+    
     @property
     def status(self):
         if self.task is not None:
@@ -168,8 +180,26 @@ class Prediction(models.Model):
                 return self.Statuses.failed
             elif self.task.status == 'REVOKED':
                 return self.Statuses.cancelled
-        elif (timezone.now() - self.created_at).seconds > settings.PREDICTION_TIMEOUT:
-            return self.Statuses.failed
+        # elif (timezone.now() - self.created_at).seconds > settings.PREDICTION_TIMEOUT:
+        #     return self.Statuses.failed
+        else:
+            return self.Statuses.not_started
+    
+    @property
+    def commit_status(self):
+        if self.commit_task is not None:
+            if self.commit_task.status == 'PENDING':
+                return self.Statuses.pending
+            elif self.commit_task.status == 'PROGRESS':
+                return self.Statuses.running
+            elif self.commit_task.status == 'SUCCESS':
+                return self.Statuses.done
+            elif self.commit_task.status == 'FAILURE':
+                return self.Statuses.failed
+            elif self.commit_task.status == 'REVOKED':
+                return self.Statuses.cancelled
+        # elif (timezone.now() - self.created_at).seconds > settings.PREDICTION_TIMEOUT:
+        #     return self.Statuses.failed
         else:
             return self.Statuses.not_started
     

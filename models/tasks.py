@@ -9,8 +9,11 @@ import numpy as np
 import prodigy
 import time
 import os
+from tqdm import tqdm
 
 from labeling.models import Modes
+from collection.models import Product
+from topics.models import ProductTopic, Topic, Label, TopicStatus, TopicSourceStatus
 
 class TrainTaskBase(Task):
     def update_train(self, train_id):
@@ -115,3 +118,69 @@ def prediction(self, prediction_id):
                 for t in topics:
                     prediction_result = PredictionResult(product_id=p.id, prediction=self.prediction, label=label, topic=t)
                     prediction_result.save()
+
+@shared_task(bind=True)
+def commit_predictions(self, prediction_id):
+    self.update_state(state='PROGRESS')
+    Prediction = apps.get_model('models', 'Prediction')
+    PredictionResult = apps.get_model('models', 'PredictionResult')
+    prediction = Prediction.objects.get(pk=prediction_id)
+
+    task = TaskResult.objects.get(task_id=self.request.id)
+    prediction.commit_task = task
+    prediction.save()
+
+    results = PredictionResult.objects.filter(prediction=prediction)
+
+    status = TopicStatus.objects.get(slug='ml-generated')
+    sources = TopicSourceStatus.to_dict()
+    source = sources['ner'] if prediction.model.mode == Modes.NER else sources['classification']
+
+    skipped = []
+    created_topics = []
+    created_labels = []
+    created_pts = []
+
+    with transaction.atomic(using='food'):
+
+        # create topic and labels beforehand
+        topics = results.values('topic').distinct()
+        labels = results.values('label').distinct()
+
+        for t in topics:
+            topic, created_topic = Topic.objects.get_or_create(name=t['topic'])
+
+            if created_topic:
+                created_topics.append(topic)
+            
+        for l in labels:
+            label, created_label = Label.objects.get_or_create(name=l['label'])
+
+            if created_label:
+                created_labels.append(label)
+
+        for r in results:
+            topic = Topic.objects.get(name=r.topic)
+            label = Label.objects.get(name=r.label)
+            try:
+                product = Product.objects.get(pk=r.product_id)
+            except Product.DoesNotExist:
+                print(f'product with id {r.product_id} is not found') # don't throw error, just log
+                skipped += 1
+            
+            product_topic, created_pt = ProductTopic.objects.get_or_create(
+                topic=topic,
+                label=label,
+                product=product,
+                status=status,
+                source=source
+            )
+            
+            if created_pt:
+                created_pts.append(product_topic)
+
+    print(f'Created {len(created_topics)} topics')
+    print(f'Created {len(created_labels)} labels')
+    print(f'Created {len(created_pts)} product_topics')
+
+            

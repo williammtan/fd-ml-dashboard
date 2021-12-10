@@ -190,3 +190,21 @@ def prediction_results(request, prediction_id, result_idx):
     results = prediction.results.filter(product_id=product_ids[index][0])
     product = results.first().product
     return render(request, 'prediction/result.html', {'prediction': prediction, 'results': results, 'product': product, 'next': index + 1 if index != len(product_ids)-1 else None, 'previous': index-1 if index != 0 else None, 'idx': index})
+
+def start_commit_prediction(request, prediction_id):
+    prediction = get_object_or_404(Prediction, pk=prediction_id)
+    if prediction.commit_status == Prediction.Statuses.pending or prediction.commit_status == Prediction.Statuses.running:
+        # not allowed
+        return HttpResponseForbidden('commit prediction session is already running')
+    
+    prediction.start_commit()
+    return redirect('models:predict_detail', pk=prediction_id)
+
+def stop_commit_prediction(request, prediction_id):
+    prediction = get_object_or_404(Prediction, pk=prediction_id)
+    if prediction.commit_status == Prediction.Statuses.done or prediction.commit_status == Prediction.Statuses.failed:
+        # not allowed
+        return HttpResponseForbidden('commit prediction session is not running')
+    
+    prediction.close()
+    return redirect('models:predict_detail', pk=prediction_id)

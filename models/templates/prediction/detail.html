@@ -37,6 +37,32 @@
         </td>
     </tr>
     <tr>
+        <th>Commit Status</td>
+        <td>
+            {% if prediction.status != 'Done' %}
+                <b class="text-muted">No Prediction Yet</b>
+            {% elif not prediction.commit_task %}
+                <b class="text-muted">Not Committed</b>
+            {% else %}
+                    <b
+                        class="
+                        {% if prediction.commit_status == 'Pending' %}
+                        text-info
+                        {% elif prediction.commit_status == 'Running' %}
+                        text-warning
+                        {% elif prediction.commit_status == 'Done' %}
+                        text-success
+                        {% elif prediction.commit_status == 'Failed' or prediction.commit_status == 'Cancelled' %}
+                        text-danger
+                        {% elif prediction.commit_status == 'Not Started' %}
+                        text-muted
+                        {% endif %}
+                        "
+                    >{{prediction.commit_status}}</b>
+            {% endif %}
+        </td>
+    </tr>
+    <tr>
         <th>Input Meta</td>
         <td>
             <code>
@@ -73,6 +99,18 @@
     {% if prediction.status == 'Done' %}
         <!-- <a class="btn btn-success" href="/sessions/{{ session.id }}/prodigy">Join Session</a> -->
         <a class="btn btn-success" href="/prediction/{{ prediction.id }}/start">Rerun Session</a>
+
+        {% if not prediction.commit_task %}
+            <a class="btn btn-primary" href="/prediction/{{ prediction.id }}/start-commit">Start Commit Session</a>
+        {% endif %}
+
+        {% if prediction.commit_status == 'Done' %}
+            <a class="btn btn-success" href="/prediction/{{ prediction.id }}/start-commit">Rerun Commit Session</a>
+        {% elif prediction.commit_status == 'Running' or prediction.commit_status == 'Pending' %}
+            <a class="btn btn-danger" href="/prediction/{{ prediction.id }}/stop-commit">Cancel Commit Session</a>
+        {% elif prediction.commit_status == 'Failed' or prediction.commit_status == 'Cancelled' %}
+            <a class="btn btn-danger" href="/prediction/{{ prediction.id }}/start-commit">Retry Commit Session</a>
+        {% endif %}
     {% elif prediction.status == 'Running' or prediction.status == 'Pending' %}
         <a class="btn btn-danger" href="/prediction/{{ prediction.id }}/stop">Cancel Session</a>
     {% elif prediction.status == 'Failed' or prediction.status == 'Cancelled' %}
