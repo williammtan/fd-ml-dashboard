@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'labeling.apps.LabelingConfig',
     'models',
     'recommendation',
+    'topics',
     'tasks.apps.TasksConfig',
     'revproxy',
     'rest_framework',

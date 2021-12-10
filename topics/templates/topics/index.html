@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+<title>Topics</title>
+
+<div class="d-flex align-items-center justify-content-between">
+    <div class="float-start">
+        <h1 class="mt-4">Topics</h1>
+    </div>
+    <div class="float-end vertical-align">
+        <a class="btn btn-success" href="/topics/new">Create Topics</a>
+    </div>
+</div>
+
+{% if topic_list %}
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Name</th>
+                <th scope="col">No. Products</th>
+                <th scope="col">Status</th>
+                <th scope="col"></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for topic in topic_list %}
+                <tr>
+                    <th scope="row"><a href="/topics/{{ topic.id }}">{{ topic.id }}</a></th>
+                    <td style="text-transform: capitalize;">{{ topic.name }}</td>
+                    <td>{{ topic.products.count }}</td>
+                    <td
+                        {% if topic.is_deleted %}
+                            class="text-muted">Inactive
+                        {% else %}
+                            class="text-success">Active
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="/topics/update/{{topic.id}}"><i class="fas fa-edit"></i></a>
+                        <!-- <a onclick="updateForm({{topic.pk}})" href="#"><i class="fas fa-edit"></i></a> -->
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="float-end">
+        {% include 'pagination.html' %}
+    </div>
+{% else %}
+    <p>No topics are available.</p>
+{% endif %}
+
+<div class="modal fade" id="showForm" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Edit topic</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <div class="form-group">
+              <label for="rename" class="col-form-label">Rename:</label>
+              <input type="text" class="form-control" id="rename">
+            </div>
+            <div class="form-group">
+              <label for="active" class="col-form-label">Active:</label>
+              <select>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary">Send message</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+    function updateForm(topic_id) {
+        console.log("sdfs")
+        //the name myModal should be ID, as jquery notation suggests.
+        $('#showForm').modal('show');
+        // $.ajax({
+        //     type: 'GET',
+        //     url: '/topics/update/'+topic_id,
+        //     success: function(res){
+        //         console.log($('#showForm', '.modal-content'))
+        //         console.log(res)
+        //         $('.modal-content').html(res)   
+        //     }
+
+        // })
+        // $('#popup-iframe').attr('src', '/topics/update/'+topic_id)
+    }
+</script>
+
+{% endblock %}
