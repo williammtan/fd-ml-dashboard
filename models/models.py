@@ -131,6 +131,7 @@ class Prediction(models.Model):
     collection = models.IntegerField(null=False, blank=False)
     task = models.OneToOneField(TaskResult, on_delete=models.CASCADE, null=True, blank=True)
     meta = models.JSONField(default=dict, blank=True) # might contain "label": "some label for classification"
+    ignore_committed = models.BooleanField(null=False, blank=False) # ignore the products that have topics in the same label or have already been committed previously
     commit_task = models.OneToOneField(TaskResult, on_delete=models.CASCADE, null=True, blank=True, related_name='commit_task')
     created_at = models.DateTimeField(auto_now_add=True)
 

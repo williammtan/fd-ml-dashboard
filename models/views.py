@@ -117,6 +117,9 @@ class PredictionDetailView(generic.DetailView):
 
 def start_prediction(request, prediction_id):
     prediction = get_object_or_404(Prediction, pk=prediction_id)
+    if prediction.commit_status == Prediction.Statuses.pending or prediction.commit_status == Prediction.Statuses.running:
+        return HttpResponseForbidden('cannot run prediction session while commit session is running') # prohibit running prediction while commit is running
+
     if prediction.status == Prediction.Statuses.pending or prediction.status == Prediction.Statuses.running:
         # not allowed
         return HttpResponseForbidden('prediction session is already running')
@@ -136,6 +139,7 @@ def stop_prediction(request, prediction_id):
 class PredictionForm(forms.ModelForm):
     collection = forms.ModelChoiceField(Collection.objects.all())
     start_session_on_create = forms.BooleanField(required=False)
+    ignore_committed = forms.BooleanField(required=False)
     error_css_class = 'invalid-feedback'
 
     def __init__(self, *args, **kwargs):
@@ -159,7 +163,7 @@ class PredictionForm(forms.ModelForm):
         return prediction
 
     class Meta:
-        fields = ('model', 'collection', 'meta') 
+        fields = ('model', 'collection', 'ignore_committed', 'meta') 
         model = Prediction
 
 class CreatePredictionView(generic.edit.CreateView):
@@ -193,6 +197,9 @@ def prediction_results(request, prediction_id, result_idx):
 
 def start_commit_prediction(request, prediction_id):
     prediction = get_object_or_404(Prediction, pk=prediction_id)
+    if prediction.status != Prediction.Statuses.done:
+        return HttpResponseForbidden('cannot commit when prediction session is running') # prohibit prediction and commit session at the same time
+
     if prediction.commit_status == Prediction.Statuses.pending or prediction.commit_status == Prediction.Statuses.running:
         # not allowed
         return HttpResponseForbidden('commit prediction session is already running')

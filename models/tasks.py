@@ -108,10 +108,25 @@ def prediction(self, prediction_id):
     products = self.prediction.get_collection().product_choice()
     nlp = self.prediction.model.load()
 
+    # find the model's labels
+    if self.prediction.model.mode == Modes.NER:
+        entity_recognizer = nlp.get_pipe('ner')
+        labels = entity_recognizer.labels
+    elif self.prediction.model.mode == Modes.TEXTCAT or self.prediction.model.mode == Modes.TEXTCAT_MULTILABEL:
+        if self.prediction.meta.get('label') is None:
+            raise Exception('If the model is of mode TEXTCAT or TEXTCAT_MULTILABEL, it must contain the "label" metadata field.')
+        
+        labels = [self.prediction.meta.get('label')]
+
     with transaction.atomic(using='ml'):
         self.prediction.results.all().delete()
 
-        for p in products:
+        for p in tqdm(products):
+            if self.prediction.ignore_committed:
+                topics_assigned = p.producttopic_set.filter(label__name__in=labels)
+                if len(topics_assigned) != 0: # if we find that there are topics assigned to this product in the given labels:
+                    continue # skip this product
+
             text = p.name + '\n' + p.description
             label_dict = self.PREDICT_FUNCTIONS[self.prediction.model.mode](self, nlp, text, label=self.prediction.meta.get('label'))
             for label, topics in label_dict.items():
@@ -159,7 +174,7 @@ def commit_predictions(self, prediction_id):
             if created_label:
                 created_labels.append(label)
 
-        for r in results:
+        for r in tqdm(results):
             topic = Topic.objects.get(name=r.topic)
             label = Label.objects.get(name=r.label)
             try:
