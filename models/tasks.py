@@ -1,5 +1,6 @@
 import celery
 from celery import shared_task, Task
+from celery.result import allow_join_result
 from django.apps import apps
 from django_celery_results.models import TaskResult
 from collections import defaultdict
@@ -11,6 +12,7 @@ import time
 import os
 from tqdm import tqdm
 
+from ml_dashboard.celery import app
 from labeling.models import Modes
 from collection.models import Product
 from topics.models import ProductTopic, Topic, Label, TopicStatus, TopicSourceStatus
@@ -198,4 +200,32 @@ def commit_predictions(self, prediction_id):
     print(f'Created {len(created_labels)} labels')
     print(f'Created {len(created_pts)} product_topics')
 
-            
+@shared_task(bind=True)
+def clone_prediction(self, prediction_id, run=True, commit=True, wait_timeout=60):
+    """Clone a prediction, optionally run and commit it"""
+
+    self.update_state(state='PROGRESS')
+
+    Prediction = apps.get_model('models', 'Prediction')
+    prediction = Prediction.objects.get(pk=prediction_id)
+
+    # clone the prediction
+    prediction.pk = None
+    prediction.task = None
+    prediction.commit_task = None
+    prediction._state.adding = True
+    prediction.save()
+
+    if run:
+        prediction.start()
+    
+    if commit:
+        if not run:
+            raise Exception('Cannot commit without running the clone prediction')
+        
+        task = app.AsyncResult(prediction.task.task_id)
+        with allow_join_result(): # use this stop RuntimeError: Never call result.get() within a task! error
+            task.get() # wait till task is done
+
+        prediction.start_commit()
+
