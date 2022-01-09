@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from pathlib import Path
+from elasticsearch import Elasticsearch
 import environ
 import json
 import os
@@ -32,6 +33,8 @@ DEBUG = False if env('ENV') == 'production' else True
 
 ALLOWED_HOSTS = json.loads(env('ALLOWED_HOSTS'))
 
+ES = Elasticsearch(env('ELASTICSEARCH_HOST'))
+ES_INDEX = env('ELASTICSEARCH_INDEX')
 
 # Application definition
 
