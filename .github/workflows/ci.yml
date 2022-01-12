@@ -7,6 +7,8 @@ on:
   push:
     branches:
       - main
+  
+  workflow_dispatch:
 
 jobs:
   reload-vm:
@@ -21,11 +23,11 @@ jobs:
           service_account_key: ${{ secrets.GCP_SA_KEY }}
           export_default_credentials: true
 
-      - name: SSH to VM
-        run: gcloud compute ssh ${{ secrets.VM_USERNAME }}@${{ secrets.VM_NAME }} --zone=${{ secrets.VM_ZONE }} --strict-host-key-checking=no --tunnel-through-iap
+      - name: SSH to VM + Reload docker-compose
+        run: |
+          gcloud compute ssh ${{ secrets.VM_USERNAME }}@${{ secrets.VM_NAME }} --zone=${{ secrets.VM_ZONE }} --strict-host-key-checking=no --tunnel-through-iap \
+          cd ${{ secrets.REPOSITORY_PATH }} \
+          git pull \
+          docker-compose up --force-recreate --build -d \
+          docker image prune -f
       - run: cd ${{ secrets.REPOSITORY_PATH }}
-      - run: git pull
-      - name: Recreate docker image and restart
-        run: docker-compose up --force-recreate --build -d
-      - name: Prune unused docker images
-        run: docker image prune -f
