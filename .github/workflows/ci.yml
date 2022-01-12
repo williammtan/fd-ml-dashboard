@@ -25,9 +25,8 @@ jobs:
 
       - name: SSH to VM + Reload docker-compose
         run: |
-          gcloud compute ssh ${{ secrets.VM_USERNAME }}@${{ secrets.VM_NAME }} --zone=${{ secrets.VM_ZONE }} --strict-host-key-checking=no --tunnel-through-iap
-          cd ${{ secrets.REPOSITORY_PATH }}
-          git pull
-          docker-compose up --force-recreate --build -d
-          docker image prune -f
-      - run: cd ${{ secrets.REPOSITORY_PATH }}
+          gcloud compute ssh ${{ secrets.VM_USERNAME }}@${{ secrets.VM_NAME }} --zone=${{ secrets.VM_ZONE }} --strict-host-key-checking=no --tunnel-through-iap --command="\
+          cd ${{ secrets.REPOSITORY_PATH }} && \
+          git pull && \
+          docker-compose up --force-recreate --build -d && \
+          docker image prune -f"
