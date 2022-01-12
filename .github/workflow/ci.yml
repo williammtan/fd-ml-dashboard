@@ -9,15 +9,23 @@ on:
     branches:
       - main
 
-with:
-  project_id: ${{ secrets.GCP_PROJECT_ID }}
-    service_account_key: ${{ secrets.GCP_SA_KEY }}
-  steps:
-    - name: SSH to VM
-      run: gcloud compute ssh ${{ secrets.VM_USERNAME }}@${{ secrets.VM_NAME }} --zone=${{ secrets.VM_ZONE }} --strict-host-key-checking=no --tunnel-through-iap
-    - run: cd ${{ secrets.REPOSITORY_PATH }}
-    - run: git pull
-    - name: Recreate docker image and restart
-      run: docker-compose up --force-recreate --build -d
-    - name: Prune unused docker images
-      run: docker image prune -f
+jobs:
+  reload-vm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Set up Google Cloud SDK
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
+
+      - name: SSH to VM
+        run: gcloud compute ssh ${{ secrets.VM_USERNAME }}@${{ secrets.VM_NAME }} --zone=${{ secrets.VM_ZONE }} --strict-host-key-checking=no --tunnel-through-iap
+      - run: cd ${{ secrets.REPOSITORY_PATH }}
+      - run: git pull
+      - name: Recreate docker image and restart
+        run: docker-compose up --force-recreate --build -d
+      - name: Prune unused docker images
+        run: docker image prune -f
