@@ -28,5 +28,5 @@ jobs:
           gcloud compute ssh ${{ secrets.VM_USERNAME }}@${{ secrets.VM_NAME }} --zone=${{ secrets.VM_ZONE }} --strict-host-key-checking=no --tunnel-through-iap --command="\
           cd ${{ secrets.REPOSITORY_PATH }} && \
           git pull && \
-          docker-compose up --force-recreate --build -d && \
+          /opt/conda/bin/docker-compose up --force-recreate --build -d && \
           docker image prune -f"
