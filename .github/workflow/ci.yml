@@ -1,0 +1,23 @@
+name: Docker CI
+uses: google-github-actions/setup-gcloud@master
+
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+
+with:
+  project_id: ${{ secrets.GCP_PROJECT_ID }}
+    service_account_key: ${{ secrets.GCP_SA_KEY }}
+  steps:
+    - name: SSH to VM
+      run: gcloud compute ssh ubuntu@foodml --zone=us-central1-a --strict-host-key-checking=no --tunnel-through-iap
+    - run: cd ${{ secrets.REPOSITORY_PATH }}
+    - run: git pull
+    - name: Recreate docker image and restart
+      run: docker-compose up --force-recreate --build -d
+    - name: Prune unused docker images
+      run: docker image prune -f
