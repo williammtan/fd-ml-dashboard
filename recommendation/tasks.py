@@ -15,7 +15,7 @@ from django.db import connections, transaction
 from django.db import close_old_connections
 from pymongo import MongoClient
 
-from ..models import TopicRecommendation
+from .models import TopicRecommendation
 
 credentials = service_account.Credentials.from_service_account_file(
     settings.SERVICE_ACCOUNT_PATH, scopes=["https://www.googleapis.com/auth/cloud-platform"]

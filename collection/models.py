@@ -1,7 +1,6 @@
 from django.db import models
 from django.db.models import Count
 from labeling.models import Dataset
-from django.apps import apps
 
 class OutletStorefronts(models.Model):
     outlet = models.ForeignKey('Outlets', models.DO_NOTHING)
@@ -42,21 +41,6 @@ class Product(models.Model):
     is_deleted = models.IntegerField()
     created_at = models.DateTimeField()
     updated_at = models.DateTimeField()
-
-    topics = models.ManyToManyField(
-        'topics.Topic',
-        through='topics.ProductTopic'
-    )
-    
-    def get_models(self):
-        """Get the product's assigned model through category --> collection --> models"""
-        Model = apps.get_model('models', 'Model')
-        collections = self.product_category.child.all().first().product_category.productcategorycollection_set.all()
-        return Model.objects.filter(collection__in=list(collections.values_list('id', flat=True)))
-    
-    def get_parent_category(self, default=None):
-        parents = self.product_category.child.all()
-        return parents.first().product_category if len(parents) > 0 else default
 
     class Meta:
         managed = False
