@@ -22,7 +22,7 @@ if os.environ.get('ENV') == 'prod':
 elif os.environ.get('ENV') == 'stage':
     environ.Env.read_env('stage.env')
 else:
-    environ.Env.read_env('../.env')
+    environ.Env.read_env('.env')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
