@@ -19,8 +19,9 @@ cryptography
 numpy
 pandas
 google-cloud-bigquery[bqstorage,pandas]
-scipy==1.6
+scipy
 sklearn
 sentence_transformers
 tqdm
+gensim
 pymongo
