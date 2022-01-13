@@ -24,3 +24,4 @@ sklearn
 sentence_transformers
 tqdm
 gensim
+pymongo
