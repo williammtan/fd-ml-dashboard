@@ -37,7 +37,9 @@ def reindex(self, sbert_model, word2vec_save, w2v_size=100):
         ]), axis=0)
         w2v_embedding[product_index_embedding[p.id]] = product_vec
 
-    sbert = SentenceTransformer(sbert_model)
+    with open(sbert_model, 'rb') as f:
+        sbert = pickle.load(f)
+
     names = [p.name for p in products]
     sbert_embedding = sbert.encode(names, show_progress_bar=True)
 

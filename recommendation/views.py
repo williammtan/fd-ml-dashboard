@@ -13,7 +13,7 @@ from collection.models import Product
 from .tasks import update_index, reindex
 
 def reindex_products(request):
-    task = reindex.delay('data/models/w2v.model', 'data/models/sbert.pkl')
+    task = reindex.delay(word2vec_save='data/models/w2v.model', sbert_model='data/models/sbert.pkl')
 
     response = {
         'task_id': task.id
@@ -25,12 +25,21 @@ def reindex_products_status(request, task_id):
     task = app.AsyncResult(task_id)
     if request.method == 'GET':
         # just get reindex status
-        response = {
-            'state': task.state,
-            'meta': task.meta
-        }
+        state = task.state
 
-        return JsonResponse(response, status=200)
+        if state == 'FAILURE':
+            # then state MUST be an Exception
+            return JsonResponse({
+                'state': state,
+                'error': str(task.info)
+            }, status=500)
+        else:
+            response = {
+                'state': state,
+                'meta': task.info
+            }
+            return JsonResponse(response, status=200)
+
     elif request.method == 'DELETE':
         # terminate reindex
         app.control.revoke(task_id, terminate=True)
