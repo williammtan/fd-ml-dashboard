@@ -25,6 +25,7 @@ urlpatterns = [
     url('^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('', index),
     path('', include('models.urls')),
+    path('', include('recommendation.urls')),
     path('sessions/', include('tasks.urls')),
     path('collection/', include('collection.urls')),
     path('dataset/', include('labeling.urls')),
