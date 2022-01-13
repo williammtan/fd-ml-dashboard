@@ -4,24 +4,36 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        MIGRATE: ${MIGRATE}
     volumes: 
       - .:.
     expose:
-      - "8000"
+      - "${DJANGO_PORT}"
     platform: linux/x86_64
   redis:
     image: redis
     ports:
-    - "6379:6379"
+    - "${REDIS_PORT}:${REDIS_PORT}"
   celery-worker:
-    <<: *django
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes: 
+      - .:.
     depends_on:
       - redis
-    command: ['celery', '-A', 'ml_dashboard', 'worker', '-l', 'info']
+    command: ['celery', '-A', 'ml_dashboard', 'worker', '-l', '${LOG_LEVEL}']
+    platform: linux/x86_64
   celery-beat:
-    <<: *django
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes: 
+      - .:.
     depends_on:
       - redis
       - celery-worker
-    command: ['celery', '-A', 'ml_dashboard', 'beat', '-l', 'info']
+    command: ['celery', '-A', 'ml_dashboard', 'beat', '-l', '${LOG_LEVEL}']
+    platform: linux/x86_64
   

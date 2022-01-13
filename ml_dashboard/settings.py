@@ -18,11 +18,11 @@ import os
 env = environ.Env()
 
 if os.environ.get('ENV') == 'prod':
-    environ.Env.read_env('ml_dashboard/prod.env')
+    environ.Env.read_env('prod.env')
 elif os.environ.get('ENV') == 'stage':
-    environ.Env.read_env('ml_dashboard/stage.env')
+    environ.Env.read_env('stage.env')
 else:
-    environ.Env.read_env()
+    environ.Env.read_env('../.env')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
