@@ -32,7 +32,8 @@ jobs:
           cd ${{ secrets.REPOSITORY_PATH }} && \
           git pull && \
           git checkout main && \
-          /opt/conda/bin/docker-compose up --force-recreate --build -d -e ENV=prod && \
+          /opt/conda/bin/docker-compose rm -f && \
+          /opt/conda/bin/docker-compose up --build -d -e ENV=prod && \
           docker image prune -f"
   deploy-stage:
     if: github.ref == 'refs/heads/develop'
@@ -53,5 +54,6 @@ jobs:
           cd ${{ secrets.REPOSITORY_PATH }} && \
           git pull && \
           git checkout develop && \
-          /opt/conda/bin/docker-compose up --force-recreate --build -d -e ENV=stage && \
+          /opt/conda/bin/docker-compose rm -f && \
+          /opt/conda/bin/docker-compose up --build -d -e ENV=stage && \
           docker image prune -f"
