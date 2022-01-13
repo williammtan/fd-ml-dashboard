@@ -24,7 +24,6 @@ class Model(models.Model):
         null=True
     ) # we have modes for each model and dataset. The model's tag and dataset need to match
     tags = TaggableManager("Model Tags")
-    collection = models.IntegerField(null=False, blank=False) # assigned collection for this model
     created_at = models.DateTimeField(auto_now_add=True)
 
     @property
