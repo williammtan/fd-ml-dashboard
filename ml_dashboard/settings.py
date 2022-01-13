@@ -16,7 +16,13 @@ import environ
 import json
 import os
 env = environ.Env()
-environ.Env.read_env()
+
+if os.environ.get('ENV') == 'prod':
+    environ.Env.read_env('ml_dashboard/prod.env')
+elif os.environ.get('ENV') == 'stage':
+    environ.Env.read_env('ml_dashboard/stage.env')
+else:
+    environ.Env.read_env()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
