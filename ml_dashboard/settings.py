@@ -42,6 +42,7 @@ ALLOWED_HOSTS = json.loads(env('ALLOWED_HOSTS'))
 ES = Elasticsearch(env('ELASTICSEARCH_HOST'))
 ES_INDEX = env('ELASTICSEARCH_INDEX')
 DEFAULT_SIZE = env('DEFAULT_SIZE')
+REDIS_PORT = env('REDIS_PORT')
 
 # Application definition
 
