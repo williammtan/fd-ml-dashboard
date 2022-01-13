@@ -3,13 +3,40 @@ from django.shortcuts import get_object_or_404, render
 from django.conf import settings
 from django.http import JsonResponse, HttpResponseBadRequest
 from elasticsearch.exceptions import NotFoundError
+from ml_dashboard.celery import app
 import numpy as np
 import json
 import time
 
 from collection.models import Product
 
-from .tasks import update_index
+from .tasks import update_index, reindex
+
+def reindex_products(request):
+    task = reindex.delay('data/models/w2v.model', 'data/models/sbert.pkl')
+
+    response = {
+        'task_id': task.id
+    }
+
+    return JsonResponse(response, status=200)
+
+def reindex_products_status(request, task_id):
+    task = app.AsyncResult(task_id)
+    if request.method == 'GET':
+        # just get reindex status
+        response = {
+            'state': task.state,
+            'meta': task.meta
+        }
+
+        return JsonResponse(response, status=200)
+    elif request.method == 'DELETE':
+        # terminate reindex
+        app.control.revoke(task_id, terminate=True)
+        return JsonResponse({}, status=204)
+    else:
+        return HttpResponseBadRequest('Not valid method in this endpoint')
 
 def index_products(request):
     body = json.loads(request.body)
@@ -21,12 +48,11 @@ def index_products(request):
     if type(ids) != list:
         return HttpResponseBadRequest('"ids" must be a list of product ids')
     
-    # task = update_index.delay(ids)
-    # task.get(propagate=False) # TODO: timeout
+    task = update_index.delay(ids, 'data/models/w2v.model', 'data/models/sbert.pkl')
 
     response = {}
     try:
-        task = update_index(ids, 'data/models/w2v.model', 'data/models/sbert.pkl')
+        task.get() # TODO: timeout
     except Exception as err:
         response['error'] = str(err)
         return JsonResponse(response, status=500)
