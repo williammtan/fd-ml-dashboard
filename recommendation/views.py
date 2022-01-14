@@ -48,7 +48,7 @@ def reindex_products_status(request, task_id):
         return HttpResponseBadRequest('Not valid method in this endpoint')
 
 def index_products(request):
-    body = json.loads(request.body)
+    body = json.loads(request.body.decode('utf-8'))
     ids = body.get('ids')
 
     if not ids:
@@ -115,7 +115,7 @@ def similar(request, product_id):
         return HttpResponseBadRequest('Must be a GET request')
 
 def similar_many(request):
-    body = json.loads(request.body)
+    body = json.loads(request.body.decode('utf-8'))
     now = time.time()
 
     if request.method == 'GET':
