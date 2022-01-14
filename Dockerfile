@@ -7,6 +7,8 @@ RUN pip install -r requirements.txt
 ADD ./ ./
 RUN chmod +x ./entrypoint.sh
 
+WORKDIR /usr/src/app
+
 ARG MIGRATE
 ARG ENV
 ENTRYPOINT [ "bash", "./entrypoint.sh" ]
