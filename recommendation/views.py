@@ -27,7 +27,7 @@ def reindex_products_status(request, task_id):
         # just get reindex status
         state = task.state
 
-        if state == 'FAILURE':
+        if state == 'FAILURE' or state == 'REVOKED':
             # then state MUST be an Exception
             return JsonResponse({
                 'state': state,

@@ -103,7 +103,11 @@ def update_index(self, product_ids, word2vec_model, sbert_model, batch_size=32):
         models = p.get_models()
         for m in models:
             product_models[m].append(p)
-
+    
+    word2vec = Word2Vec.load(word2vec_model)
+    vocab = list(word2vec.wv.key_to_index.keys())
+    w2v_embedding = np.zeros((len(products), word2vec.vector_size))
+    product_index_embedding = {p.id: i for i, p in enumerate(products)}
         
     status = TopicStatus.objects.get(slug='ml-generated')
     sources = TopicSourceStatus.to_dict()
@@ -172,19 +176,15 @@ def update_index(self, product_ids, word2vec_model, sbert_model, batch_size=32):
 
         ProductTopic.objects.bulk_create(product_topics_obj)
 
-    # run word2vec and sbert on the models
-    word2vec = Word2Vec.load(word2vec_model)
-    vocab = list(word2vec.wv.key_to_index.keys())
-    w2v_embedding = np.zeros((len(products), word2vec.vector_size))
-    product_index_embedding = {p.id: i for i, p in enumerate(products)}
+        # run word2vec and sbert on the models
 
-    for product_id, pt in product_topics.groupby('product_id'):
-        product_vec = np.average(np.array([
-            word2vec.wv.get_vector(t)
-            for t in pt.topic
-            if t in vocab
-        ]), axis=0)
-        w2v_embedding[product_index_embedding[product_id]] = product_vec
+        for product_id, pt in product_topics.groupby('product_id'):
+            product_vec = np.average(np.array([
+                word2vec.wv.get_vector(t)
+                for t in pt.topic
+                if t in vocab
+            ]), axis=0)
+            w2v_embedding[product_index_embedding[product_id]] = product_vec
 
     # sbert = settings.SBERT
     sbert = pickle.load(open(sbert_model, 'rb'))
@@ -203,7 +203,7 @@ def update_index(self, product_ids, word2vec_model, sbert_model, batch_size=32):
     docs = []
     for p in products:
 
-        vec = embedding[product_index_embedding[product_id]]
+        vec = embedding[product_index_embedding[p.id]]
         if np.any(vec):
             category = p.get_parent_category()
             docs.append({
