@@ -1,7 +1,10 @@
+#!/usr/bin/env
 
-set -e
 
+echo "entrypoint"
 # migrate
-if [ -z $MIGRATE ]; then python3 manage.py migrate --noinput
+if [ -z $MIGRATE ]; then python3 manage.py migrate --database ml --noinput; fi
 
 mkdir -p data/models
+
+exec "$@"

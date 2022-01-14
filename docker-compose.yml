@@ -1,26 +1,49 @@
 version: '3'
 services:
-  django: &django
+  mysql:
+     image: mysql:8.0
+     environment:
+       - MYSQL_ROOT_PASSWORD=${ML_PASSWORD}
+       - MYSQL_DATABASE=${ML_NAME}
+     volumes:
+       - /var/lib/mysql:/var/lib/mysql
+     ports:
+       - "3306:3306"
+  django:
     build:
       context: .
       dockerfile: Dockerfile
       args:
         MIGRATE: ${MIGRATE}
+    extra_hosts:
+       localhost: 127.0.0.1
+    environment:
+      - ENV=${ENV}
+    depends_on:
+      - mysql
+    links:
+      - mysql
     volumes: 
-      - .:.
-    expose:
-      - "${DJANGO_PORT}"
+      - ./:/usr/src/app
+    command: gunicorn ml_dashboard.wsgi:application --bind 0.0.0.0:${DJANGO_PORT}
+    ports:
+      - "${DJANGO_PORT}:${DJANGO_PORT}"
     platform: linux/x86_64
   redis:
     image: redis
+    command: --port ${REDIS_PORT}
     ports:
     - "${REDIS_PORT}:${REDIS_PORT}"
   celery-worker:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.celery
+    environment:
+      - ENV=${ENV}
     volumes: 
-      - .:.
+      - ./:/usr/src/app
+    links:
+      - redis
     depends_on:
       - redis
     command: ['celery', '-A', 'ml_dashboard', 'worker', '-l', '${LOG_LEVEL}']
@@ -28,9 +51,13 @@ services:
   celery-beat:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.celery
+    environment:
+      - ENV=${ENV}
     volumes: 
-      - .:.
+      - ./:/usr/src/app
+    links:
+      - redis
     depends_on:
       - redis
       - celery-worker

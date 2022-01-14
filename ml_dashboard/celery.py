@@ -7,8 +7,8 @@ from django.conf import settings
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ml_dashboard.settings')
 
 app = Celery('ml_dashboard')
-app.conf.broker_url = f'redis://localhost:{settings.REDIS_PORT}/0'
-app.conf.result_backend = f'redis://localhost:{settings.REDIS_PORT}/0'
+app.conf.broker_url = f'redis://redis:{settings.REDIS_PORT}/0'
+app.conf.result_backend = f'redis://redis:{settings.REDIS_PORT}/0'
 # app.conf.broker_url = 'sqla+sqlite:///db.sqlite3'
 # app.conf.result_backend = 'db+sqlite:///db.sqlite3'
 
