@@ -58,6 +58,16 @@ def reindex(self, sbert_model, word2vec_save, w2v_size=100):
                 "outlet_id": {
                     "type": "long"
                 },
+                "is_active": {
+                    "type": "byte"
+                },
+                "outlet_locale": {
+                    "type": "array" # Not sure if this works because it is said it's not required
+                    # Further explanation: https://www.elastic.co/guide/en/elasticsearch/reference/current/array.html
+                },
+                "delivery_area": {
+                    "type": "object"
+                },
                 "vector": {
                     "type": "dense_vector",
                     "dims": embedding.shape[1],
@@ -82,6 +92,9 @@ def reindex(self, sbert_model, word2vec_save, w2v_size=100):
                 'vector': vec,
                 "category": category.id if category else 0,
                 'outlet_id': p.outlet.id,
+                'is_active': p.is_active,
+                # 'outlet_locale': ,
+                # 'delivery_area': ,
                 '_op_type': 'index',
                 '_index': settings.ES_INDEX
             })
@@ -211,6 +224,9 @@ def update_index(self, product_ids, word2vec_model, sbert_model, batch_size=32):
                 'vector': vec,
                 "category": category.id if category else 0,
                 'outlet_id': p.outlet.id,
+                'is_active': p.is_active,
+                # 'outlet_locale': ,
+                # 'delivery_area': ,
                 '_op_type': 'index',
                 '_index': settings.ES_INDEX
             })

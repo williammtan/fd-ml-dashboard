@@ -85,8 +85,18 @@ def similar(request, product_id):
 
         try:
             page = int(request.GET.get('page') or settings.DEFAULT_SIZE)
+        except ValueError:
+            return HttpResponseBadRequest("Page must be an integer")
+
+        try:
+            city_id = int(request.GET.get('city_id'))
+        except ValueError:
+            return HttpResponseBadRequest("City ID must be an integer")
+
+        try:
+            locale = request.GET.get('locale')
         except NotFoundError:
-            return HttpResponseNotFound("Page must be an integer")
+            locale = "id"
 
         product = product_res['_source']
         product_vec = product['vector']
@@ -96,7 +106,9 @@ def similar(request, product_id):
                 "query": {
                     "bool": {
                         "must": [
-                            {"match": {"category": product['category']}} # category must match
+                            {"match": {"category": product['category']}}, # category must match
+                            {"match": {"outlet_locale": locale}},
+                            {"match": {"delivery_area.id": city_id}}
                         ],
                         "must_not": [
                             {"match": {"_id": product_id }}
@@ -146,8 +158,18 @@ def similar_many(request):
 
         try:
             page = int(request.GET.get('page') or settings.DEFAULT_SIZE)
+        except ValueError:
+            return HttpResponseBadRequest("Page must be an integer")
+
+        try:
+            city_id = int(request.GET.get('city_id'))
+        except ValueError:
+            return HttpResponseBadRequest("City ID must be an integer")
+
+        try:
+            locale = request.GET.get('locale')
         except NotFoundError:
-            return HttpResponseNotFound("Page must be an integer")
+            locale = "id"
 
         categories = []
         product_vecs = []
@@ -172,6 +194,8 @@ def similar_many(request):
                 "query": {
                     "bool": {
                         "should": [
+                            {"match": {"outlet_locale": locale}},
+                            {"match": {"delivery_area.id": city_id}},
                             {'match': {"category": c}}
                             for c in set(categories)
                         ],
