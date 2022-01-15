@@ -14,6 +14,27 @@ class OutletStorefronts(models.Model):
         managed = False
         db_table = 'outlet_storefronts'
 
+class Languages(models.Model):
+    name = models.CharField(max_length=10)
+    code = models.CharField(max_length=2)
+    created_at = models.DateTimeField()
+    updated_at = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'languages'
+
+class OutletLocalizations(models.Model):
+    language = models.ForeignKey(Languages, models.DO_NOTHING)
+    outlet = models.ForeignKey('Outlets', models.DO_NOTHING)
+    is_active = models.IntegerField()
+    created_at = models.DateTimeField()
+    updated_at = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'outlet_localizations'
+
 class Outlets(models.Model):
     name = models.CharField(max_length=60)
     description = models.CharField(max_length=255)
@@ -23,9 +44,15 @@ class Outlets(models.Model):
     created_at = models.DateTimeField()
     updated_at = models.DateTimeField()
 
+    localizations = models.ManyToManyField(
+        Languages,
+        through='OutletLocalizations'
+    )
+
     class Meta:
         managed = False
         db_table = 'outlets'
+
 
 class Product(models.Model):
     outlet = models.ForeignKey('Outlets', models.DO_NOTHING)
@@ -47,6 +74,9 @@ class Product(models.Model):
         'topics.Topic',
         through='topics.ProductTopic'
     )
+
+    def get_localizations(self):
+        return self.outlet.localizations.all()
     
     def get_models(self):
         """Get the product's assigned model through category --> collection --> models"""
