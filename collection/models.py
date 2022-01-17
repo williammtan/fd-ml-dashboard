@@ -3,6 +3,8 @@ from django.db.models import Count
 from labeling.models import Dataset
 from django.apps import apps
 
+from .constants import product_delivery_area
+
 class OutletStorefronts(models.Model):
     outlet = models.ForeignKey('Outlets', models.DO_NOTHING)
     name = models.CharField(max_length=60)
@@ -53,6 +55,16 @@ class Outlets(models.Model):
         managed = False
         db_table = 'outlets'
 
+class Cities(models.Model):
+    province_id = models.IntegerField()
+    name = models.CharField(max_length=255)
+    postal_code = models.CharField(max_length=5)
+    created_at = models.DateTimeField()
+    updated_at = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'cities'
 
 class Product(models.Model):
     outlet = models.ForeignKey('Outlets', models.DO_NOTHING)
@@ -74,6 +86,10 @@ class Product(models.Model):
         'topics.Topic',
         through='topics.ProductTopic'
     )
+
+    def get_delivery_cities(self):
+        """Returns a RawQuerySet of Cities() objects"""
+        return Cities.objects.raw(product_delivery_area, {'pid': self.pk})
 
     def get_localizations(self):
         return self.outlet.localizations.all()
