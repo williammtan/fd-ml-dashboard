@@ -25,7 +25,7 @@ jobs:
       - name: SSH to VM + Reload docker-compose
         run: |
           gcloud compute ssh ${{ secrets.VM_USERNAME }}@${{ secrets.VM_NAME }} --zone=${{ secrets.VM_ZONE }} --strict-host-key-checking=no --tunnel-through-iap --command="\
-          cd ${{ secrets.REPOSITORY_PATH }} && \
+          cd ${{ secrets.PROD_REPOSITORY_PATH }} && \
           git pull && \
           git checkout main && \
           /opt/conda/bin/docker-compose --env-file prod.env up rm -f && \
@@ -47,7 +47,7 @@ jobs:
       - name: SSH to VM + Reload docker-compose
         run: |
           gcloud compute ssh ${{ secrets.VM_USERNAME }}@${{ secrets.VM_NAME }} --zone=${{ secrets.VM_ZONE }} --strict-host-key-checking=no --tunnel-through-iap --command="\
-          cd ${{ secrets.REPOSITORY_PATH }} && \
+          cd ${{ secrets.STAGE_REPOSITORY_PATH }} && \
           git pull && \
           git checkout develop && \
           /opt/conda/bin/docker-compose --env-file stage.env rm -f && \
