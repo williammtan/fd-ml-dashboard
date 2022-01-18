@@ -7,3 +7,5 @@ prodigy.json
 __pycache__
 data
 .service_account.json
+
+!mock.env
