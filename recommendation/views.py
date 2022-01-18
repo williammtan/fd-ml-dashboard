@@ -108,7 +108,7 @@ def similar(request, product_id):
                         "must": [
                             {"match": {"category": product['category']}}, # category must match
                             {"match": {"outlet_locale": locale}},
-                            {"match": {"delivery_area.id": city_id}}
+                            {"match": {"delivery_area": city_id}}
                         ],
                         "must_not": [
                             {"match": {"_id": product_id }}
@@ -198,7 +198,7 @@ def similar_many(request):
                         ],
                         "must":[
                             {'match': {"outlet_locale": locale}},
-                            {'match': {"delivery_area.id": city_id}}
+                            {'match': {"delivery_area": city_id}}
                         ],
                         "minimum_should_match" : 1,
                         "must_not": [

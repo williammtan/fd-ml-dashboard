@@ -222,7 +222,11 @@ def update_index(self, product_ids, word2vec_model, sbert_model, batch_size=32):
     docs = []
     for p in products:
         outlet_locale = list(p.get_localizations().values_list('code', flat=True))
-        delivery_area = list(p.get_delivery_cities().values_list('id', flat=True))
+        delivery_areas = p.get_delivery_cities()
+        delivery_area = list()
+
+        for da in delivery_areas:
+            delivery_area.append(da.id)
 
         vec = embedding[product_index_embedding[p.id]]
         if np.any(vec):
