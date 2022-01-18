@@ -19,7 +19,7 @@ from topics.models import Topic, Label, ProductTopic, TopicSourceStatus, TopicSt
 def reindex(self, sbert_model, word2vec_save, w2v_size=100):
     self.update_state(state='PROGRESS')
 
-    products = Product.objects.all()
+    products = Product.objects.filter(is_active__exact=1).filter(is_deleted__exact=0)
     sentences = [list(set(p.topics.all().values_list('name', flat=True))) for p in products]
 
     word2vec = Word2Vec(sentences, min_count=1, vector_size=w2v_size)
@@ -63,11 +63,10 @@ def reindex(self, sbert_model, word2vec_save, w2v_size=100):
                     "type": "byte"
                 },
                 "outlet_locale": {
-                    "type": "array" # Not sure if this works because it is said it's not required
-                    # Further explanation: https://www.elastic.co/guide/en/elasticsearch/reference/current/array.html
+                    "type": "integer"
                 },
                 "delivery_area": {
-                    "type": "array"
+                    "type": "long"
                 },
                 "vector": {
                     "type": "dense_vector",
@@ -85,7 +84,11 @@ def reindex(self, sbert_model, word2vec_save, w2v_size=100):
     docs = []
     for p in products:
         outlet_locale = list(p.get_localizations().values_list('code', flat=True)) # we only need to store the code of the localization
-        delivery_area = list(p.get_delivery_cities().values_list('id', flat=True))
+        delivery_areas = p.get_delivery_cities()
+        delivery_area = list()
+
+        for da in delivery_areas:
+            delivery_area.append(da.id)
 
         vec = embedding[product_index_embedding[p.id]]
         if np.any(vec):

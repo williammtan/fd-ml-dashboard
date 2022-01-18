@@ -1,11 +1,11 @@
 product_delivery_area = """
-SELECT DISTINCTROW c.*
+SELECT DISTINCTROW c.id as id
 	FROM delivery_partner_service_areas
 			 JOIN cities c on delivery_partner_service_areas.city_id = c.id
 	WHERE delivery_partner_service_id IN
 		  (SELECT delivery_partner_service_id FROM product_delivery_partners WHERE product_id = %(pid)s)
 		  UNION
-	SELECT c.*
+	SELECT c.id as id
 	FROM product_delivery_partners pdp
 	JOIN products p
 		ON p.id = pdp.product_id
