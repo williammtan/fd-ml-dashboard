@@ -5,10 +5,11 @@ services:
      environment:
        - MYSQL_ROOT_PASSWORD=${ML_PASSWORD}
        - MYSQL_DATABASE=${ML_NAME}
+       - MYSQL_TCP_PORT=${ML_PORT}
      volumes:
        - /var/lib/mysql:/var/lib/mysql
      ports:
-       - "3306:3306"
+       - "${ML_PORT}:${ML_PORT}"
   django:
     build:
       context: .
