@@ -36,6 +36,7 @@ def reindex(self, sbert_model, word2vec_save, w2v_size=100):
             if t in vocab
         ]), axis=0)
         w2v_embedding[product_index_embedding[p.id]] = product_vec
+        
 
     with open(sbert_model, 'rb') as f:
         sbert = pickle.load(f)
@@ -66,7 +67,7 @@ def reindex(self, sbert_model, word2vec_save, w2v_size=100):
                     # Further explanation: https://www.elastic.co/guide/en/elasticsearch/reference/current/array.html
                 },
                 "delivery_area": {
-                    "type": "object"
+                    "type": "array"
                 },
                 "vector": {
                     "type": "dense_vector",
@@ -83,6 +84,8 @@ def reindex(self, sbert_model, word2vec_save, w2v_size=100):
 
     docs = []
     for p in products:
+        outlet_locale = list(p.get_localizations().values_list('code', flat=True)) # we only need to store the code of the localization
+        delivery_area = list(p.get_delivery_cities().values_list('id', flat=True))
 
         vec = embedding[product_index_embedding[p.id]]
         if np.any(vec):
@@ -93,8 +96,8 @@ def reindex(self, sbert_model, word2vec_save, w2v_size=100):
                 "category": category.id if category else 0,
                 'outlet_id': p.outlet.id,
                 'is_active': p.is_active,
-                # 'outlet_locale': ,
-                # 'delivery_area': ,
+                'outlet_locale': outlet_locale,
+                'delivery_area': delivery_area,
                 '_op_type': 'index',
                 '_index': settings.ES_INDEX
             })
@@ -215,6 +218,8 @@ def update_index(self, product_ids, word2vec_model, sbert_model, batch_size=32):
 
     docs = []
     for p in products:
+        outlet_locale = list(p.get_localizations().values_list('code', flat=True))
+        delivery_area = list(p.get_delivery_cities().values_list('id', flat=True))
 
         vec = embedding[product_index_embedding[p.id]]
         if np.any(vec):
@@ -225,8 +230,8 @@ def update_index(self, product_ids, word2vec_model, sbert_model, batch_size=32):
                 "category": category.id if category else 0,
                 'outlet_id': p.outlet.id,
                 'is_active': p.is_active,
-                # 'outlet_locale': ,
-                # 'delivery_area': ,
+                'outlet_locale': outlet_locale,
+                'delivery_area': delivery_area,
                 '_op_type': 'index',
                 '_index': settings.ES_INDEX
             })

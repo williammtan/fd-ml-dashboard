@@ -194,10 +194,11 @@ def similar_many(request):
                 "query": {
                     "bool": {
                         "should": [
-                            {"match": {"outlet_locale": locale}},
-                            {"match": {"delivery_area.id": city_id}},
-                            {'match': {"category": c}}
-                            for c in set(categories)
+                            {'match': {"category": c}} for c in set(categories)
+                        ],
+                        "must":[
+                            {'match': {"outlet_locale": locale}},
+                            {'match': {"delivery_area.id": city_id}}
                         ],
                         "minimum_should_match" : 1,
                         "must_not": [
