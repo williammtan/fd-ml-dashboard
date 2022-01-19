@@ -9,6 +9,7 @@ import json
 import time
 
 from collection.models import Product
+from recommendation.helper import get_offset
 
 from .tasks import update_index, reindex
 
@@ -76,10 +77,26 @@ def similar(request, product_id):
             size = int(request.GET.get('size') or settings.DEFAULT_SIZE)
         except ValueError:
             return HttpResponseBadRequest('Size must be an integer')
+
         try:
             product_res = settings.ES.get(index=settings.ES_INDEX, id=product_id)
         except NotFoundError:
             return HttpResponseNotFound(f"Product ID ({product_id}) not in ES index")
+
+        try:
+            page = int(request.GET.get('page') or settings.DEFAULT_SIZE)
+        except ValueError:
+            return HttpResponseBadRequest("Page must be an integer")
+
+        try:
+            city_id = int(request.GET.get('city_id'))
+        except ValueError:
+            return HttpResponseBadRequest("City ID must be an integer")
+
+        try:
+            locale = request.GET.get('locale')
+        except NotFoundError:
+            locale = "id"
 
         product = product_res['_source']
         product_vec = product['vector']
@@ -89,7 +106,12 @@ def similar(request, product_id):
                 "query": {
                     "bool": {
                         "must": [
-                            {"match": {"category": product['category']}} # category must match
+                            {"match": {"category": product['category']}}, # category must match
+                            {"match": {"outlet_locale": locale}},
+                            {"match": {"delivery_area": city_id}}
+                        ],
+                        "must_not": [
+                            {"match": {"_id": product_id }}
                         ]
                     }
                 },
@@ -99,7 +121,10 @@ def similar(request, product_id):
                 }
             }
         }
-        res = settings.ES.search(index=settings.ES_INDEX, body={"size": size+1, "_source": ["_id"], "query": script_query})
+
+        res = settings.ES.search(index=settings.ES_INDEX, body={"size": size, "from": get_offset(page, size), "_source": ["_id"], "query": script_query})
+        count = settings.ES.count(index=settings.ES_INDEX, body={"query": script_query})["count"]
+
         return JsonResponse({
             'data' : [
                 {
@@ -107,8 +132,10 @@ def similar(request, product_id):
                     "similarity": hit.get('_score')
                 }
                 for hit in res['hits']['hits']
-                if int(hit.get('_id')) != product_id
             ],
+            'size': size,
+            'page': page,
+            'total': count,
             'took': time.time()-now
         }, status=200)
     else:
@@ -128,6 +155,21 @@ def similar_many(request):
             size = int(request.GET.get('size') or settings.DEFAULT_SIZE)
         except ValueError:
             return HttpResponseBadRequest('Size must be an integer')
+
+        try:
+            page = int(request.GET.get('page') or settings.DEFAULT_SIZE)
+        except ValueError:
+            return HttpResponseBadRequest("Page must be an integer")
+
+        try:
+            city_id = int(request.GET.get('city_id'))
+        except ValueError:
+            return HttpResponseBadRequest("City ID must be an integer")
+
+        try:
+            locale = request.GET.get('locale')
+        except NotFoundError:
+            locale = "id"
 
         categories = []
         product_vecs = []
@@ -152,10 +194,17 @@ def similar_many(request):
                 "query": {
                     "bool": {
                         "should": [
-                            {'match': {"category": c}}
-                            for c in set(categories)
+                            {'match': {"category": c}} for c in set(categories)
                         ],
-                        "minimum_should_match" : 1
+                        "must":[
+                            {'match': {"outlet_locale": locale}},
+                            {'match': {"delivery_area": city_id}}
+                        ],
+                        "minimum_should_match" : 1,
+                        "must_not": [
+                            {"match": {"_id": product_id }}
+                            for product_id in set(product_ids)
+                        ]
                     }
                 },
                 "script": {
@@ -164,7 +213,9 @@ def similar_many(request):
                 }
             }
         }
-        res = settings.ES.search(index=settings.ES_INDEX, body={"size": size+len(product_ids), "_source": ["_id"], "query": script_query})
+        res = settings.ES.search(index=settings.ES_INDEX, body={"size": size, "from": get_offset(page, size), "_source": ["_id"], "query": script_query})
+        count = settings.ES.count(index=settings.ES_INDEX, body={"query": script_query})["count"]
+
         return JsonResponse({
             'data' : [
                 {
@@ -172,8 +223,10 @@ def similar_many(request):
                     "similarity": hit.get('_score')
                 }
                 for hit in res['hits']['hits']
-                if int(hit.get('_id')) not in product_ids
             ][:size],
+            'size': size,
+            'page': page,
+            'total': count,
             'took': time.time()-now
         }, status=200)
     else:

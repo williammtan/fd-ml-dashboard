@@ -19,7 +19,7 @@ from topics.models import Topic, Label, ProductTopic, TopicSourceStatus, TopicSt
 def reindex(self, sbert_model, word2vec_save, w2v_size=100):
     self.update_state(state='PROGRESS')
 
-    products = Product.objects.all()
+    products = Product.objects.filter(is_active__exact=1).filter(is_deleted__exact=0)
     sentences = [list(set(p.topics.all().values_list('name', flat=True))) for p in products]
 
     word2vec = Word2Vec(sentences, min_count=1, vector_size=w2v_size)
@@ -36,6 +36,7 @@ def reindex(self, sbert_model, word2vec_save, w2v_size=100):
             if t in vocab
         ]), axis=0)
         w2v_embedding[product_index_embedding[p.id]] = product_vec
+        
 
     with open(sbert_model, 'rb') as f:
         sbert = pickle.load(f)
@@ -58,6 +59,15 @@ def reindex(self, sbert_model, word2vec_save, w2v_size=100):
                 "outlet_id": {
                     "type": "long"
                 },
+                "is_active": {
+                    "type": "byte"
+                },
+                "outlet_locale": {
+                    "type": "integer"
+                },
+                "delivery_area": {
+                    "type": "long"
+                },
                 "vector": {
                     "type": "dense_vector",
                     "dims": embedding.shape[1],
@@ -73,6 +83,12 @@ def reindex(self, sbert_model, word2vec_save, w2v_size=100):
 
     docs = []
     for p in products:
+        outlet_locale = list(p.get_localizations().values_list('code', flat=True)) # we only need to store the code of the localization
+        delivery_areas = p.get_delivery_cities()
+        delivery_area = list()
+
+        for da in delivery_areas:
+            delivery_area.append(da.id)
 
         vec = embedding[product_index_embedding[p.id]]
         if np.any(vec):
@@ -82,6 +98,9 @@ def reindex(self, sbert_model, word2vec_save, w2v_size=100):
                 'vector': vec,
                 "category": category.id if category else 0,
                 'outlet_id': p.outlet.id,
+                'is_active': p.is_active,
+                'outlet_locale': outlet_locale,
+                'delivery_area': delivery_area,
                 '_op_type': 'index',
                 '_index': settings.ES_INDEX
             })
@@ -202,6 +221,12 @@ def update_index(self, product_ids, word2vec_model, sbert_model, batch_size=32):
 
     docs = []
     for p in products:
+        outlet_locale = list(p.get_localizations().values_list('code', flat=True))
+        delivery_areas = p.get_delivery_cities()
+        delivery_area = list()
+
+        for da in delivery_areas:
+            delivery_area.append(da.id)
 
         vec = embedding[product_index_embedding[p.id]]
         if np.any(vec):
@@ -211,6 +236,9 @@ def update_index(self, product_ids, word2vec_model, sbert_model, batch_size=32):
                 'vector': vec,
                 "category": category.id if category else 0,
                 'outlet_id': p.outlet.id,
+                'is_active': p.is_active,
+                'outlet_locale': outlet_locale,
+                'delivery_area': delivery_area,
                 '_op_type': 'index',
                 '_index': settings.ES_INDEX
             })
