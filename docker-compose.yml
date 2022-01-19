@@ -26,7 +26,7 @@ services:
       - mysql
     volumes: 
       - ./:/usr/src/app
-    command: gunicorn ml_dashboard.wsgi:application --bind 0.0.0.0:${DJANGO_PORT}
+    command: gunicorn ml_dashboard.wsgi:application --bind 0.0.0.0:${DJANGO_PORT} --config gunicorn.conf.py
     ports:
       - "${DJANGO_PORT}:${DJANGO_PORT}"
     platform: linux/x86_64
