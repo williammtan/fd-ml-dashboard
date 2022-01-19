@@ -63,7 +63,7 @@ def reindex(self, sbert_model, word2vec_save, w2v_size=100):
                     "type": "byte"
                 },
                 "outlet_locale": {
-                    "type": "integer"
+                    "type": "keyword"
                 },
                 "delivery_area": {
                     "type": "long"
