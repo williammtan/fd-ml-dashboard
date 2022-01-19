@@ -93,10 +93,7 @@ def similar(request, product_id):
         except ValueError:
             return HttpResponseBadRequest("City ID must be an integer")
 
-        try:
-            locale = request.GET.get('locale')
-        except NotFoundError:
-            locale = "id"
+        locale = request.GET.get('locale', 'id')
 
         product = product_res['_source']
         product_vec = product['vector']
@@ -167,10 +164,7 @@ def similar_many(request):
         except ValueError:
             return HttpResponseBadRequest("City ID must be an integer")
 
-        try:
-            locale = request.GET.get('locale')
-        except NotFoundError:
-            locale = "id"
+        locale = request.GET.get('locale', 'id')
 
         categories = []
         product_vecs = []
