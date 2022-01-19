@@ -19,7 +19,7 @@ from topics.models import Topic, Label, ProductTopic, TopicSourceStatus, TopicSt
 def reindex(self, sbert_model, word2vec_save, w2v_size=100):
     self.update_state(state='PROGRESS')
 
-    products = Product.objects.filter(is_active__exact=1).filter(is_deleted__exact=0)
+    products = Product.objects.filter(is_deleted__exact=0)
     sentences = [list(set(p.topics.all().values_list('name', flat=True))) for p in products]
 
     word2vec = Word2Vec(sentences, min_count=1, vector_size=w2v_size)
