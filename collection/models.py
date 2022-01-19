@@ -92,7 +92,7 @@ class Product(models.Model):
         return Cities.objects.raw(product_delivery_area, {'pid': self.pk})
 
     def get_localizations(self):
-        return self.outlet.localizations.filter(is_active__exact=1)
+        return self.outlet.localizations.filter(outlet_localization__is_active__exact=1)
     
     def get_models(self):
         """Get the product's assigned model through category --> collection --> models"""
