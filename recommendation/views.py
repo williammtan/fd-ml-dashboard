@@ -60,14 +60,17 @@ def index_products(request):
     
     task = update_index.delay(ids, 'data/models/w2v.model', 'data/models/sbert.pkl')
 
-    response = {}
-    try:
-        task.get() # TODO: timeout
-    except Exception as err:
-        response['error'] = str(err)
-        return JsonResponse(response, status=500)
+    response = {
+        'task_id': task.id,
+    }
+    
+    # try:
+    #     task.get() # TODO: timeout
+    # except Exception as err:
+    #     response['error'] = str(err)
+    #     return JsonResponse(response, status=500)
 
-    return JsonResponse({}, status=200)
+    return JsonResponse(response, status=200)
 
 def similar(request, product_id):
 
