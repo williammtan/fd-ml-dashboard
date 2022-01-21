@@ -22,7 +22,7 @@ def reindex_products(request):
 
     return JsonResponse(response, status=200)
 
-def reindex_products_status(request, task_id):
+def index_status(request, task_id):
     task = app.AsyncResult(task_id)
     if request.method == 'GET':
         # just get reindex status
@@ -63,12 +63,6 @@ def index_products(request):
     response = {
         'task_id': task.id,
     }
-    
-    # try:
-    #     task.get() # TODO: timeout
-    # except Exception as err:
-    #     response['error'] = str(err)
-    #     return JsonResponse(response, status=500)
 
     return JsonResponse(response, status=200)
 
