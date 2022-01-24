@@ -1,0 +1,11 @@
+{
+    "db": "mysql",
+    "db_settings": {
+        "mysql": {
+            "host": "localhost",
+            "user": "myuser",
+            "passwd": "mypassword",
+            "db": "mydatabase"
+        }
+    }
+}

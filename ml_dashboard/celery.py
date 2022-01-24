@@ -1,13 +1,14 @@
 import os
 
 from celery import Celery
+from django.conf import settings
 
 # Set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ml_dashboard.settings')
 
 app = Celery('ml_dashboard')
-app.conf.broker_url = 'redis://localhost:6379/0'
-app.conf.result_backend = 'redis://localhost:6379/0'
+app.conf.broker_url = f'redis://redis:{settings.REDIS_PORT}/0'
+app.conf.result_backend = f'redis://redis:{settings.REDIS_PORT}/0'
 # app.conf.broker_url = 'sqla+sqlite:///db.sqlite3'
 # app.conf.result_backend = 'db+sqlite:///db.sqlite3'
 
