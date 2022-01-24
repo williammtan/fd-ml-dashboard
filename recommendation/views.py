@@ -22,7 +22,7 @@ def reindex_products(request):
 
     return JsonResponse(response, status=200)
 
-def reindex_products_status(request, task_id):
+def index_status(request, task_id):
     task = app.AsyncResult(task_id)
     if request.method == 'GET':
         # just get reindex status
@@ -60,14 +60,11 @@ def index_products(request):
     
     task = update_index.delay(ids, 'data/models/w2v.model', 'data/models/sbert.pkl')
 
-    response = {}
-    try:
-        task.get() # TODO: timeout
-    except Exception as err:
-        response['error'] = str(err)
-        return JsonResponse(response, status=500)
+    response = {
+        'task_id': task.id,
+    }
 
-    return JsonResponse({}, status=200)
+    return JsonResponse(response, status=200)
 
 def similar(request, product_id):
 
