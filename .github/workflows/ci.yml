@@ -29,7 +29,6 @@ jobs:
           git reset --hard && \
           git pull && \
           git checkout main && \
-          /opt/conda/bin/docker-compose --env-file prod.env up rm -f && \
           /opt/conda/bin/docker-compose --env-file prod.env up --build -d && \
           docker image prune -f"
   deploy-stage:
