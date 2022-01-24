@@ -1,17 +1,16 @@
 name: Docker CI
 
 on:
-  pull_request:
-    branches:
-      - main
   push:
     branches:
       - main
+      - develop
   
   workflow_dispatch:
 
 jobs:
-  reload-vm:
+  deploy-prod:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -26,7 +25,31 @@ jobs:
       - name: SSH to VM + Reload docker-compose
         run: |
           gcloud compute ssh ${{ secrets.VM_USERNAME }}@${{ secrets.VM_NAME }} --zone=${{ secrets.VM_ZONE }} --strict-host-key-checking=no --tunnel-through-iap --command="\
-          cd ${{ secrets.REPOSITORY_PATH }} && \
+          cd ${{ secrets.PROD_REPOSITORY_PATH }} && \
           git pull && \
-          /opt/conda/bin/docker-compose up --force-recreate --build -d && \
+          git checkout main && \
+          /opt/conda/bin/docker-compose --env-file prod.env up rm -f && \
+          /opt/conda/bin/docker-compose --env-file prod.env up --build -d && \
+          docker image prune -f"
+  deploy-stage:
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
+
+      - name: SSH to VM + Reload docker-compose
+        run: |
+          gcloud compute ssh ${{ secrets.VM_USERNAME }}@${{ secrets.VM_NAME }} --zone=${{ secrets.VM_ZONE }} --strict-host-key-checking=no --tunnel-through-iap --command="\
+          cd ${{ secrets.STAGE_REPOSITORY_PATH }} && \
+          git pull && \
+          git checkout develop && \
+          /opt/conda/bin/docker-compose --env-file stage.env rm -f && \
+          /opt/conda/bin/docker-compose --env-file stage.env up --build -d && \
           docker image prune -f"

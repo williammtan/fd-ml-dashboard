@@ -28,7 +28,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = env('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False if env('ENV') == 'production' else True
+DEBUG = False if env('ENV') != 'prod' else True
 
 ALLOWED_HOSTS = json.loads(env('ALLOWED_HOSTS'))
 
