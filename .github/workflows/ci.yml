@@ -26,7 +26,6 @@ jobs:
         run: |
           gcloud compute ssh ${{ secrets.VM_USERNAME }}@${{ secrets.VM_NAME }} --zone=${{ secrets.VM_ZONE }} --strict-host-key-checking=no --tunnel-through-iap --command="\
           cd ${{ secrets.PROD_REPOSITORY_PATH }} && \
-          git reset --hard && \
           git pull && \
           git checkout main && \
           /opt/conda/bin/docker-compose --env-file prod.env up rm -f && \
