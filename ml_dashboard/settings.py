@@ -11,11 +11,18 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from pathlib import Path
+from elasticsearch import Elasticsearch
 import environ
 import json
 import os
 env = environ.Env()
-environ.Env.read_env()
+
+if os.environ.get('ENV') == 'prod':
+    environ.Env.read_env('prod.env')
+elif os.environ.get('ENV') == 'stage':
+    environ.Env.read_env('stage.env')
+else:
+    environ.Env.read_env('.env')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -32,6 +39,10 @@ DEBUG = False if env('ENV') != 'prod' else True
 
 ALLOWED_HOSTS = json.loads(env('ALLOWED_HOSTS'))
 
+ES = Elasticsearch(env('ELASTICSEARCH_HOST'))
+ES_INDEX = env('ELASTICSEARCH_INDEX')
+DEFAULT_SIZE = env('DEFAULT_SIZE')
+REDIS_PORT = env('REDIS_PORT')
 
 # Application definition
 
