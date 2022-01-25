@@ -7,7 +7,7 @@ services:
        - MYSQL_DATABASE=${ML_NAME}
        - MYSQL_TCP_PORT=${ML_PORT}
      volumes:
-       - /var/lib/mysql:/var/lib/mysql
+       - ${ML_DATADIR}:/var/lib/mysql
      ports:
        - "${ML_PORT}:${ML_PORT}"
   django:
