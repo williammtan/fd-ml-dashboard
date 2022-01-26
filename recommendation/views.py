@@ -326,6 +326,7 @@ def similar_many_category(request):
         return HttpResponseNotFound("Request does not exist.")
 
 def ping(request):
+    # This function's sole purpose is to check whether the application deployed successfully.
     if request.method == "GET":
         return JsonResponse({
             "value": "pong"
