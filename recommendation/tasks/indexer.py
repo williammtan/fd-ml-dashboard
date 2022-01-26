@@ -239,7 +239,10 @@ def update_index(self, product_ids, word2vec_model, sbert_model, batch_size=32):
             parent_category = p.get_parent_category()
             child_category = p.product_category
 
-            category = [parent_category.id, child_category.id] # category lvl 1, category lvl 2
+            category = [
+                parent_category.id if parent_category else 0, 
+                child_category.id if child_category else 0
+            ] # category lvl 1, category lvl 2
             
             docs.append({
                 '_id': p.id,
