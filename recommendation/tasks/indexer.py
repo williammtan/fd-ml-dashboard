@@ -92,11 +92,11 @@ def reindex(self, sbert_model, word2vec_save, w2v_size=100):
 
         vec = embedding[product_index_embedding[p.id]]
         if np.any(vec):
-            category = p.product_category
+            category = [p.get_parent_category.id, p.product_category.id] # category lvl 1, category lvl 2
             docs.append({
                 '_id': p.id,
                 'vector': vec,
-                "category": category.id if category else 0,
+                "category": category,
                 'outlet_id': p.outlet.id,
                 'is_active': p.is_active,
                 'outlet_locale': outlet_locale,
@@ -230,11 +230,11 @@ def update_index(self, product_ids, word2vec_model, sbert_model, batch_size=32):
 
         vec = embedding[product_index_embedding[p.id]]
         if np.any(vec):
-            category = p.product_category
+            category = [p.get_parent_category, p.product_category] # category lvl 1, category lvl 2
             docs.append({
                 '_id': p.id,
                 'vector': vec,
-                "category": category.id if category else 0,
+                "category": category,
                 'outlet_id': p.outlet.id,
                 'is_active': p.is_active,
                 'outlet_locale': outlet_locale,
