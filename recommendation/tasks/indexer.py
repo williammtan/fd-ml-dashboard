@@ -92,7 +92,7 @@ def reindex(self, sbert_model, word2vec_save, w2v_size=100):
 
         vec = embedding[product_index_embedding[p.id]]
         if np.any(vec):
-            parent_category = p.get_parent_category
+            parent_category = p.get_parent_category()
             child_category = p.product_category
 
             category = [parent_category.id, child_category.id] # category lvl 1, category lvl 2
