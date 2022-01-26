@@ -233,7 +233,7 @@ def update_index(self, product_ids, word2vec_model, sbert_model, batch_size=32):
 
         vec = embedding[product_index_embedding[p.id]]
         if np.any(vec):
-            parent_category = p.get_parent_category
+            parent_category = p.get_parent_category()
             child_category = p.product_category
 
             category = [parent_category.id, child_category.id] # category lvl 1, category lvl 2
