@@ -95,7 +95,10 @@ def reindex(self, sbert_model, word2vec_save, w2v_size=100):
             parent_category = p.get_parent_category()
             child_category = p.product_category
 
-            category = [parent_category.id, child_category.id] # category lvl 1, category lvl 2
+            category = [
+                parent_category.id if parent_category else 0, 
+                child_category.id if child_category else 0
+            ] # category lvl 1, category lvl 2
             docs.append({
                 '_id': p.id,
                 'vector': vec,
