@@ -101,7 +101,6 @@ def similar(request, product_id):
                 "query": {
                     "bool": {
                         "must": [
-                            {"match": {"category": product['category']}}, # category must match
                             {"match": {"outlet_locale": locale}},
                             {"match": {"delivery_area": city_id}},
                             {"match": {"is_active": 1}}
@@ -186,15 +185,11 @@ def similar_many(request):
             "script_score": {
                 "query": {
                     "bool": {
-                        "should": [
-                            {'match': {"category": c}} for c in set(categories)
-                        ],
                         "must":[
                             {'match': {"outlet_locale": locale}},
                             {'match': {"delivery_area": city_id}},
                             {"match": {"is_active": 1}}
                         ],
-                        "minimum_should_match" : 1,
                         "must_not": [
                             {"match": {"_id": product_id }}
                             for product_id in set(product_ids)
@@ -262,7 +257,7 @@ def similar_many_category(request):
             return HttpResponseBadRequest("City ID must be an integer")
 
         try:
-            category = int(request.GET.get('category_id'))
+            category_id = int(request.GET.get('category_id'))
         except ValueError:
             return HttpResponseBadRequest("Category ID must be an integer")
 
@@ -289,7 +284,7 @@ def similar_many_category(request):
                 "query": {
                     "bool": {
                         "must":[
-                            {'match': {"category": category}},
+                            {'match': {"category": category_id}},
                             {'match': {"outlet_locale": locale}},
                             {'match': {"delivery_area": city_id}},
                             {"match": {"is_active": 1}}
