@@ -20,7 +20,7 @@ def reindex(self, sbert_model, word2vec_save, w2v_size=100):
     self.update_state(state='PROGRESS')
 
     products = Product.objects.filter(is_deleted__exact=0)
-    sentences = [list(set(p.topics.all().values_list('name', flat=True))) for p in products]
+    sentences = [list(set(p.topics.all().values_list('name', flat=True))) + [f'pcat-{p.get_parent_category()}'] for p in products]
 
     word2vec = Word2Vec(sentences, min_count=1, vector_size=w2v_size)
     word2vec.save(word2vec_save)
@@ -165,7 +165,8 @@ def update_index(self, product_ids, word2vec_model, sbert_model, batch_size=32):
                         'topic': t,
                         'label': label,
                         'status': status,
-                        'source': source
+                        'source': source,
+                        'category': p.get_parent_category()
                     })
 
     # append product_topics
@@ -204,9 +205,10 @@ def update_index(self, product_ids, word2vec_model, sbert_model, batch_size=32):
         # run word2vec and sbert on the models
 
         for product_id, pt in product_topics.groupby('product_id'):
+            topic_list = pt.topic.tolist() +  [f'pcat-{pt.category}']
             product_vec = np.average(np.array([
                 word2vec.wv.get_vector(t)
-                for t in pt.topic
+                for t in topic_list
                 if t in vocab
             ]), axis=0)
             w2v_embedding[product_index_embedding[product_id]] = product_vec
