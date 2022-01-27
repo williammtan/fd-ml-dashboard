@@ -181,7 +181,7 @@ def similar_many(request):
             product_vecs.append(product_vec)
         
         avg_product_vec = np.mean(product_vecs, axis=0)
-
+        
         script_query = {
             "script_score": {
                 "query": {
@@ -207,6 +207,7 @@ def similar_many(request):
                 }
             }
         }
+        
         res = settings.ES.search(index=settings.ES_INDEX, body={"size": size, "from": get_offset(page, size), "_source": ["_id"], "query": script_query})
         count = settings.ES.count(index=settings.ES_INDEX, body={"query": script_query})["count"]
 

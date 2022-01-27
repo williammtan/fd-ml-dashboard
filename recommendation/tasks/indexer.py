@@ -54,10 +54,10 @@ def reindex(self, sbert_model, word2vec_save, w2v_size=100):
             },
             "properties": {
                 "category": {
-                    "type": "long"
+                    "type": "keyword"
                 },
                 "outlet_id": {
-                    "type": "long"
+                    "type": "integer"
                 },
                 "is_active": {
                     "type": "byte"
@@ -66,7 +66,7 @@ def reindex(self, sbert_model, word2vec_save, w2v_size=100):
                     "type": "keyword"
                 },
                 "delivery_area": {
-                    "type": "long"
+                    "type": "integer"
                 },
                 "vector": {
                     "type": "dense_vector",
