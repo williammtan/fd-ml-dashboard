@@ -29,7 +29,7 @@ def reindex(self, sbert_model, word2vec_save, w2v_size=100):
     product_index_embedding = {id: idx for idx, id in enumerate(products.values_list('id', flat=True))}
 
     for p in products:
-        topics = list(p.producttopic_set.all().values_list('topic__name', flat=True))
+        topics = list(p.producttopic_set.all().values_list('topic__name', flat=True)) + [f'pcat-{p.get_parent_category()}']
         product_vec = np.average(np.array([
             word2vec.wv.get_vector(t)
             for t in topics
