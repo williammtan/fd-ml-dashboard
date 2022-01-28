@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import transaction
+from django.db.models import Q
 import pandas as pd
 from celery import shared_task
 from collections import defaultdict
@@ -19,8 +20,8 @@ from topics.models import Topic, Label, ProductTopic, TopicSourceStatus, TopicSt
 def reindex(self, sbert_model, word2vec_save, w2v_size=100):
     self.update_state(state='PROGRESS')
 
-    products = Product.objects.filter(is_deleted__exact=0)
-    sentences = [list(set(p.topics.all().values_list('name', flat=True))) + [f'pcat-{p.get_parent_category()}'] for p in products]
+    products = Product.objects.prefetch_related('topics').filter(is_deleted__exact=0)
+    sentences = [list(set(p.get_topics().values_list('name', flat=True))) + [f'pcat-{p.get_parent_category()}'] for p in products]
 
     word2vec = Word2Vec(sentences, min_count=1, vector_size=w2v_size)
     word2vec.save(word2vec_save)

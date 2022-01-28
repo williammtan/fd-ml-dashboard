@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models import Count
+from django.db.models import Count, Q
 from labeling.models import Dataset
 from django.apps import apps
 
@@ -86,6 +86,13 @@ class Product(models.Model):
         'topics.Topic',
         through='topics.ProductTopic'
     )
+
+    def get_topics(self):
+        """Get filtered topics"""
+        Topic = apps.get_model('topics', 'Topic')
+        TopicStatus = apps.get_model('topics', 'TopicStatus')
+        filter_topic = [TopicStatus.to_dict()['ml-generated'], TopicStatus.to_dict()['accepted']]
+        return Topic.objects.filter(producttopic__product=self, producttopic__status__in=filter_topic)
 
     def get_delivery_cities(self):
         """Returns a RawQuerySet of Cities() objects"""
