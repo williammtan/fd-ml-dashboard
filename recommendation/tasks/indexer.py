@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import transaction
+from django.db.models import Q
 import pandas as pd
 from celery import shared_task
 from collections import defaultdict
@@ -19,8 +20,8 @@ from topics.models import Topic, Label, ProductTopic, TopicSourceStatus, TopicSt
 def reindex(self, sbert_model, word2vec_save, w2v_size=100):
     self.update_state(state='PROGRESS')
 
-    products = Product.objects.filter(is_deleted__exact=0)
-    sentences = [list(set(p.topics.all().values_list('name', flat=True))) for p in products]
+    products = Product.objects.prefetch_related('topics').filter(is_deleted__exact=0)
+    sentences = [list(set(p.get_topics().values_list('name', flat=True))) + [f'pcat-{p.get_parent_category()}'] for p in products]
 
     word2vec = Word2Vec(sentences, min_count=1, vector_size=w2v_size)
     word2vec.save(word2vec_save)
@@ -29,7 +30,7 @@ def reindex(self, sbert_model, word2vec_save, w2v_size=100):
     product_index_embedding = {id: idx for idx, id in enumerate(products.values_list('id', flat=True))}
 
     for p in products:
-        topics = list(p.producttopic_set.all().values_list('topic__name', flat=True))
+        topics = list(p.producttopic_set.all().values_list('topic__name', flat=True)) + [f'pcat-{p.get_parent_category()}']
         product_vec = np.average(np.array([
             word2vec.wv.get_vector(t)
             for t in topics
@@ -54,10 +55,10 @@ def reindex(self, sbert_model, word2vec_save, w2v_size=100):
             },
             "properties": {
                 "category": {
-                    "type": "long"
+                    "type": "keyword"
                 },
                 "outlet_id": {
-                    "type": "long"
+                    "type": "integer"
                 },
                 "is_active": {
                     "type": "byte"
@@ -66,7 +67,7 @@ def reindex(self, sbert_model, word2vec_save, w2v_size=100):
                     "type": "keyword"
                 },
                 "delivery_area": {
-                    "type": "long"
+                    "type": "integer"
                 },
                 "vector": {
                     "type": "dense_vector",
@@ -92,11 +93,17 @@ def reindex(self, sbert_model, word2vec_save, w2v_size=100):
 
         vec = embedding[product_index_embedding[p.id]]
         if np.any(vec):
-            category = p.product_category
+            parent_category = p.get_parent_category()
+            child_category = p.product_category
+
+            category = [
+                parent_category.id if parent_category else 0, 
+                child_category.id if child_category else 0
+            ] # category lvl 1, category lvl 2
             docs.append({
                 '_id': p.id,
                 'vector': vec,
-                "category": category.id if category else 0,
+                "category": category,
                 'outlet_id': p.outlet.id,
                 'is_active': p.is_active,
                 'outlet_locale': outlet_locale,
@@ -159,7 +166,8 @@ def update_index(self, product_ids, word2vec_model, sbert_model, batch_size=32):
                         'topic': t,
                         'label': label,
                         'status': status,
-                        'source': source
+                        'source': source,
+                        'category': p.get_parent_category()
                     })
 
     # append product_topics
@@ -198,9 +206,10 @@ def update_index(self, product_ids, word2vec_model, sbert_model, batch_size=32):
         # run word2vec and sbert on the models
 
         for product_id, pt in product_topics.groupby('product_id'):
+            topic_list = pt.topic.tolist() +  [f'pcat-{pt.category}']
             product_vec = np.average(np.array([
                 word2vec.wv.get_vector(t)
-                for t in pt.topic
+                for t in topic_list
                 if t in vocab
             ]), axis=0)
             w2v_embedding[product_index_embedding[product_id]] = product_vec
@@ -230,11 +239,18 @@ def update_index(self, product_ids, word2vec_model, sbert_model, batch_size=32):
 
         vec = embedding[product_index_embedding[p.id]]
         if np.any(vec):
-            category = p.product_category
+            parent_category = p.get_parent_category()
+            child_category = p.product_category
+
+            category = [
+                parent_category.id if parent_category else 0, 
+                child_category.id if child_category else 0
+            ] # category lvl 1, category lvl 2
+            
             docs.append({
                 '_id': p.id,
                 'vector': vec,
-                "category": category.id if category else 0,
+                "category": category,
                 'outlet_id': p.outlet.id,
                 'is_active': p.is_active,
                 'outlet_locale': outlet_locale,
