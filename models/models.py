@@ -24,7 +24,7 @@ class Model(models.Model):
         null=True
     ) # we have modes for each model and dataset. The model's tag and dataset need to match
     tags = TaggableManager("Model Tags")
-    collection = models.IntegerField(null=False, blank=False) # assigned collection for this model
+    collection = models.IntegerField(null=False, blank=False, default=0) # assigned collection for this model
     created_at = models.DateTimeField(auto_now_add=True)
 
     @property
@@ -157,8 +157,8 @@ class Prediction(models.Model):
         time.sleep(2)
         self.refresh_from_db()
     
-    def start_commit(self):
-        task = commit_predictions.delay(self.id)
+    def start_commit(self, check_duplicate=False):
+        task = commit_predictions.delay(self.id, check_duplicate=False)
         time.sleep(5)
         self.refresh_from_db()
     
