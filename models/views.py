@@ -20,6 +20,7 @@ class ModelDetailView(generic.DetailView):
 
 
 class ModelForm(forms.ModelForm):
+    collection = forms.ModelChoiceField(Collection.objects.all())
     error_css_class = 'invalid-feedback'
 
     def __init__(self, *args, **kwargs):
@@ -30,9 +31,14 @@ class ModelForm(forms.ModelForm):
                     'class': 'form-control',
                     'id': field.label.lower()
                 }
+    
+    def clean_collection(self):
+        self.cleaned_data['collection'] = self.cleaned_data.get('collection').id
+        collection = self.cleaned_data.get('collection', False)
+        return collection
 
     class Meta:
-        fields = ('name', 'mode', 'tags') 
+        fields = ('name', 'mode', 'tags', 'collection') 
         model = Model
 
 class CreateModelView(generic.edit.CreateView):
