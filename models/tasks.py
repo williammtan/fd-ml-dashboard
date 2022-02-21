@@ -137,7 +137,7 @@ def prediction(self, prediction_id):
                     prediction_result.save()
 
 @shared_task(bind=True)
-def commit_predictions(self, prediction_id):
+def commit_predictions(self, prediction_id, check_duplicate=False):
     self.update_state(state='PROGRESS')
     Prediction = apps.get_model('models', 'Prediction')
     PredictionResult = apps.get_model('models', 'PredictionResult')
@@ -184,17 +184,30 @@ def commit_predictions(self, prediction_id):
             except Product.DoesNotExist:
                 print(f'product with id {r.product_id} is not found') # don't throw error, just log
                 skipped += 1
+
+            if check_duplicate:
             
-            product_topic, created_pt = ProductTopic.objects.get_or_create(
-                topic=topic,
-                label=label,
-                product=product,
-                status=status,
-                source=source
-            )
-            
-            if created_pt:
+                product_topic, created_pt = ProductTopic.objects.get_or_create(
+                    topic=topic,
+                    label=label,
+                    product=product,
+                    status=status,
+                    source=source
+                )
+                if created_pt:
+                    created_pts.append(product_topic)
+            else:
+                product_topic = ProductTopic(
+                    topic=topic,
+                    label=label,
+                    product=product,
+                    status=status,
+                    source=source
+                )
                 created_pts.append(product_topic)
+            
+    if not check_duplicate: # if not checking duplicates, we need to bulk_create
+        ProductTopic.objects.bulk_create(product_topic)
 
     print(f'Created {len(created_topics)} topics')
     print(f'Created {len(created_labels)} labels')

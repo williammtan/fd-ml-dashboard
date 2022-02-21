@@ -157,8 +157,8 @@ class Prediction(models.Model):
         time.sleep(2)
         self.refresh_from_db()
     
-    def start_commit(self):
-        task = commit_predictions.delay(self.id)
+    def start_commit(self, check_duplicate=False):
+        task = commit_predictions.delay(self.id, check_duplicate=False)
         time.sleep(5)
         self.refresh_from_db()
     
