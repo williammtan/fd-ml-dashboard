@@ -207,7 +207,7 @@ def commit_predictions(self, prediction_id, check_duplicate=False):
                 created_pts.append(product_topic)
             
     if not check_duplicate: # if not checking duplicates, we need to bulk_create
-        ProductTopic.objects.bulk_create(product_topic)
+        ProductTopic.objects.bulk_create(created_pts)
 
     print(f'Created {len(created_topics)} topics')
     print(f'Created {len(created_labels)} labels')
