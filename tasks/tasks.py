@@ -60,7 +60,7 @@ class TaskSessionBase(Task):
 class RunFailure(Exception):
     pass
 
-def find_open_port(start_socket=8000):
+def find_open_port(start_socket=settings.PRODIGY_PORT_START):
     while True:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         result = s.connect_ex(('0.0.0.0', start_socket))

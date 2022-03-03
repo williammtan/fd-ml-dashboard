@@ -43,6 +43,7 @@ ES = Elasticsearch(env('ELASTICSEARCH_HOST'))
 ES_INDEX = env('ELASTICSEARCH_INDEX')
 DEFAULT_SIZE = env('DEFAULT_SIZE')
 REDIS_PORT = env('REDIS_PORT')
+PRODIGY_PORT_START = env('PRODIGY_PORT_START')
 
 # Application definition
 
