@@ -5,25 +5,31 @@ class ParameterTypes(Enum):
     VARIABLE = 'var'
     FLAG = 'flag'
 
+class Parameter:
+    def __init__(self, type, default=None, help=''):
+        self.type = type
+        self.default = default
+        self.help = help
+
 MODEL_PATTERN = '{recipe} {dataset} {model} {source} %s'
 NO_MODEL_PATTERN = '{recipe} {dataset} {source} %s'
 
 class PatternBase:
     recipe = 'NaN' # this should be overiden
     command = MODEL_PATTERN # this also should be overiden
-    dataset = ParameterTypes.POSITIONAL
-    model = ParameterTypes.POSITIONAL
-    source = ParameterTypes.POSITIONAL
-    loader = ParameterTypes.VARIABLE
-    label = ParameterTypes.VARIABLE
+    dataset = Parameter(ParameterTypes.POSITIONAL, help='Prodigy dataset to save annotations to.')
+    model = Parameter(ParameterTypes.POSITIONAL, default='blank:id', help='Loadable spaCy pipeline for tokenization or blank:lang for a blank model (e.g. blank:id for Indonesian).')
+    source = Parameter(ParameterTypes.POSITIONAL, help='Path to text source or - to read from standard input.')
+    loader = Parameter(ParameterTypes.VARIABLE, help='Optional ID of text source loader. If not set, source file extension is used to determine loader.')
+    label = Parameter(ParameterTypes.VARIABLE, help='Comma-separated list of labels to annotate (eg. MYLABEL,MYOTHERLABEL)')
 
     def __init__(self):
         self.parameters = {
             self.process_parameter(var): self.__getattribute__(var)
             for var in self.__dir__() 
-            if not var.startswith('__') and not var.endswith('__') and type(self.__getattribute__(var)) == ParameterTypes
+            if not var.startswith('__') and not var.endswith('__') and type(self.__getattribute__(var).type) == ParameterTypes
         }
-        self.parameters.update({'recipe': ParameterTypes.POSITIONAL})
+        self.parameters.update({'recipe': Parameter(ParameterTypes.POSITIONAL, help='Prodigy recipe')})
     
     def process_parameter(self, text):
         return text.replace('_', '-')
@@ -41,9 +47,9 @@ class PatternBase:
                     pass
 
             if k in self.parameters:
-                if self.parameters[k] == ParameterTypes.VARIABLE and (v and v != ''):
+                if self.parameters[k].type == ParameterTypes.VARIABLE and (v and v != ''):
                     extra_params += f' --{k} {v}' # eg. --label TEST,HAHA
-                elif self.parameters[k] == ParameterTypes.FLAG and (v and v != ''): # if it's a flag and the value is true or not null
+                elif self.parameters[k].type == ParameterTypes.FLAG and (v and v != ''): # if it's a flag and the value is true or not null
                     extra_params += f' --{k}'
 
         return self.command.format(**kwargs) %extra_params
@@ -59,9 +65,9 @@ COMMAND = {
 
 class NER_MANUAL(PatternBase):
     recipe = 'ner.manual'
-    patterns = ParameterTypes.VARIABLE
-    exclude = ParameterTypes.VARIABLE
-    highlight_chars = ParameterTypes.FLAG
+    patterns = Parameter(ParameterTypes.VARIABLE, help='Optional path to match patterns file to pre-highlight entity spans.')
+    exclude = Parameter(ParameterTypes.VARIABLE, help='Comma-separated list of dataset IDs containing annotations to exclude.')
+    highlight_chars = Parameter(ParameterTypes.FLAG, help=' Allow highlighting individual characters instead of snapping to token boundaries. If set, no "tokens" information will be saved with the example.')
 
 class NER_CORRECT(PatternBase):
     recipe = 'ner.manual'

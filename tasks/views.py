@@ -61,15 +61,15 @@ class SessionForm(forms.ModelForm):
                 field.initial = self.recipe_value
         
         if self.options is not None:
-            for i, (name, param_type) in enumerate(self.options.parameters.items()):
+            for i, (name, param) in enumerate(self.options.parameters.items()):
                 if name in RESERVED_FIELDS:
                     continue
 
-                if param_type == ParameterTypes.FLAG:
+                if param.type == ParameterTypes.FLAG:
                     field = forms.BooleanField(required=False)
-                elif param_type == ParameterTypes.VARIABLE:
+                elif param.type == ParameterTypes.VARIABLE:
                     field = forms.CharField(required=False)
-                elif param_type == ParameterTypes.POSITIONAL:
+                elif param.type == ParameterTypes.POSITIONAL:
                     field = forms.CharField(required=True)
 
                 self.fields[name] = field
