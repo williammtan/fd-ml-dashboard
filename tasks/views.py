@@ -6,6 +6,7 @@ from django.conf import settings
 from django import forms
 from djproxy.views import HttpProxy
 from rest_framework import serializers, viewsets
+from django.utils.safestring import mark_safe
 
 from .patterns import RECIPE_PATTERNS, ParameterTypes, RESERVED_FIELDS
 from .models import Session
@@ -64,13 +65,15 @@ class SessionForm(forms.ModelForm):
             for i, (name, param) in enumerate(self.options.parameters.items()):
                 if name in RESERVED_FIELDS:
                     continue
+            
+                help_text = mark_safe(f'<div data-toggle="tooltip" data-placement="bottom">{param.help}</div>')
 
                 if param.type == ParameterTypes.FLAG:
-                    field = forms.BooleanField(required=False, help_text=param.help)
+                    field = forms.BooleanField(required=False, help_text=help_text)
                 elif param.type == ParameterTypes.VARIABLE:
-                    field = forms.CharField(required=False, help_text=param.help)
+                    field = forms.CharField(required=False, help_text=help_text)
                 elif param.type == ParameterTypes.POSITIONAL:
-                    field = forms.CharField(required=True, help_text=param.help)
+                    field = forms.CharField(required=True, help_text=help_text)
 
                 self.fields[name] = field
     
