@@ -27,7 +27,7 @@ class PatternBase:
         self.parameters = {
             self.process_parameter(var): self.__getattribute__(var)
             for var in self.__dir__() 
-            if not var.startswith('__') and not var.endswith('__') and type(self.__getattribute__(var).type) == ParameterTypes
+            if not var.startswith('__') and not var.endswith('__') and type(self.__getattribute__(var)) == Parameter and type(self.__getattribute__(var).type) == ParameterTypes
         }
         self.parameters.update({'recipe': Parameter(ParameterTypes.POSITIONAL, help='Prodigy recipe')})
     
