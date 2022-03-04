@@ -66,11 +66,11 @@ class SessionForm(forms.ModelForm):
                     continue
 
                 if param.type == ParameterTypes.FLAG:
-                    field = forms.BooleanField(required=False)
+                    field = forms.BooleanField(required=False, help_text=param.help)
                 elif param.type == ParameterTypes.VARIABLE:
-                    field = forms.CharField(required=False)
+                    field = forms.CharField(required=False, help_text=param.help)
                 elif param.type == ParameterTypes.POSITIONAL:
-                    field = forms.CharField(required=True)
+                    field = forms.CharField(required=True, help_text=param.help)
 
                 self.fields[name] = field
     
