@@ -6,10 +6,14 @@ class ParameterTypes(Enum):
     FLAG = 'flag'
 
 class Parameter:
-    def __init__(self, type, default=None, help=''):
+    def __init__(self, type, default=None, help='', required=False):
         self.type = type
         self.default = default
         self.help = help
+        if self.type == ParameterTypes.POSITIONAL: # always required if the parameter is positional
+            self.required = True
+        else:
+            self.required = required
 
 MODEL_PATTERN = '{recipe} {dataset} {model} {source} %s'
 NO_MODEL_PATTERN = '{recipe} {dataset} {source} %s'
@@ -18,10 +22,10 @@ class PatternBase:
     recipe = 'NaN' # this should be overiden
     command = MODEL_PATTERN # this also should be overiden
     dataset = Parameter(ParameterTypes.POSITIONAL, help='Prodigy dataset to save annotations to.')
-    model = Parameter(ParameterTypes.POSITIONAL, default='blank:id', help='Loadable spaCy pipeline for tokenization or blank:lang for a blank model (e.g. blank:id for Indonesian).')
+    label = Parameter(ParameterTypes.VARIABLE, help='Comma-separated list of labels to annotate (eg. MYLABEL,MYOTHERLABEL)', required=True)
+    model = Parameter(ParameterTypes.POSITIONAL, default='blank:id', help='Loadable spaCy pipeline for tokenization or blank:lang for a blank model (e.g. blank:id for Indonesian).', required=True)
     source = Parameter(ParameterTypes.POSITIONAL, help='Path to text source or - to read from standard input.')
     loader = Parameter(ParameterTypes.VARIABLE, help='Optional ID of text source loader. If not set, source file extension is used to determine loader.')
-    label = Parameter(ParameterTypes.VARIABLE, help='Comma-separated list of labels to annotate (eg. MYLABEL,MYOTHERLABEL)')
 
     def __init__(self):
         self.parameters = {
