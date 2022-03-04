@@ -65,23 +65,15 @@ class SessionForm(forms.ModelForm):
             for i, (name, param) in enumerate(self.options.parameters.items()):
                 if name in RESERVED_FIELDS:
                     continue
-            
-                help_text = mark_safe(f'<a class="helptext">?<span>{param.help}</span></a>')
 
-                if param.type == ParameterTypes.FLAG:
-                    field = forms.BooleanField(required=False, help_text=help_text, initial=param.default)
-                elif param.type == ParameterTypes.VARIABLE:
-                    field = forms.CharField(required=False or param.required, help_text=help_text, initial=param.default)
-                elif param.type == ParameterTypes.POSITIONAL:
-                    field = forms.CharField(required=True, help_text=help_text, initial=param.default)
-
+                field = param.generate_field()
                 self.fields[name] = field
     
     def get_options(self):
         options = {}
         for name, v in self.cleaned_data.items():
             if name not in RESERVED_FIELDS and self.options.parameters.get(name) is not None:
-                options[name] = None if v == '' else v
+                options[name] = self.options.parameters[name].clean(v)
         return options
 
     class Meta:
@@ -109,7 +101,6 @@ class RecipeForm(forms.Form):
 
 def get_recipe(request):
     recipes = list(RECIPE_PATTERNS.keys())
-    print(recipes)
     if request.method == 'POST':
         recipe = request.POST.get('recipe')
         if recipe:
