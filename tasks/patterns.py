@@ -76,31 +76,11 @@ class NER_TEACH(PatternBase):
     exclude = ParameterTypes.VARIABLE
     unsegmented = ParameterTypes.FLAG
 
-class TRAIN(PatternBase):
-    recipe = 'train'
-    output_dir = ParameterTypes.POSITIONAL
-
-    ner = ParameterTypes.FLAG
-    textcat = ParameterTypes.FLAG
-    textcat_multilabel = ParameterTypes.FLAG
-    database = ParameterTypes.POSITIONAL # flag before positional
-
-    base_model = ParameterTypes.VARIABLE
-    eval_split = ParameterTypes.VARIABLE
-    lang = ParameterTypes.VARIABLE
-    gpu_id = ParameterTypes.VARIABLE
-
-    label_stats = ParameterTypes.FLAG
-    verbose = ParameterTypes.FLAG
-    silent = ParameterTypes.FLAG
-    
-
 
 RECIPE_PATTERNS = {
     'ner.manual': NER_MANUAL(),
     'ner.correct': NER_CORRECT(),
-    'ner.teach': NER_TEACH(),
-    'train': TRAIN()
+    'ner.teach': NER_TEACH()
 }
 
 RESERVED_FIELDS = ['recipe', 'dataset', 'source']
