@@ -11696,3 +11696,26 @@ body {
   font-size: 0.75rem;
   border-radius: 0.25rem !important;
 }
+
+.helptext {
+  margin: 5px;
+  color: blue;
+  text-decoration: none;
+}
+
+a.helptext span {
+  display:none;
+  width: 30em;
+  margin-left: 1em;
+  padding: 0.25em;
+  text-align: justify;
+  z-index:1;
+}
+
+a.helptext:hover span {
+  display:inline;
+  position:absolute;
+  background:#ffffff;
+  border:1px solid #cccccc;
+  color:#6c6c6c;
+}
