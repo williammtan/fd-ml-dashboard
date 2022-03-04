@@ -66,7 +66,7 @@ class SessionForm(forms.ModelForm):
                 if name in RESERVED_FIELDS:
                     continue
             
-                help_text = mark_safe(f'<div data-toggle="tooltip" data-placement="bottom">{param.help}</div>')
+                help_text = mark_safe(f'<a class="helptext">?<span>{param.help}</span></a>')
 
                 if param.type == ParameterTypes.FLAG:
                     field = forms.BooleanField(required=False, help_text=help_text)
