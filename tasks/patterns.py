@@ -58,15 +58,6 @@ class PatternBase:
 
         return self.command.format(**kwargs) %extra_params
 
-COMMAND = {
-    'recipe': 'ner.manual',
-    'dataset': 'test_ner',
-    'source': 'source.json',
-    'model': 'blank:id',
-    'highlight_chars': 's',
-    'label': ['test', 'test2']
-}
-
 class NER_MANUAL(PatternBase):
     recipe = 'ner.manual'
     patterns = Parameter(ParameterTypes.VARIABLE, help='Optional path to match patterns file to pre-highlight entity spans.')
@@ -110,10 +101,6 @@ RECIPE_PATTERNS = {
     'ner.correct': NER_CORRECT(),
     'ner.teach': NER_TEACH(),
     'train': TRAIN()
-    # 'ner.teach': MODEL_PATTERN %('ner.teach'),
-    # 'textcat.manual': NO_MODEL_PATTERN %('textcat.manual'),
-    # 'textcat.correct': MODEL_PATTERN %('textcat.correct'),
-    # 'textcat.teach': MODEL_PATTERN %('textcat.teach')
 }
 
 RESERVED_FIELDS = ['recipe', 'dataset', 'source']
