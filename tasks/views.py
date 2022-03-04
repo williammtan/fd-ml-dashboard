@@ -69,11 +69,11 @@ class SessionForm(forms.ModelForm):
                 help_text = mark_safe(f'<a class="helptext">?<span>{param.help}</span></a>')
 
                 if param.type == ParameterTypes.FLAG:
-                    field = forms.BooleanField(required=False, help_text=help_text)
+                    field = forms.BooleanField(required=False, help_text=help_text, initial=param.default)
                 elif param.type == ParameterTypes.VARIABLE:
-                    field = forms.CharField(required=False, help_text=help_text)
+                    field = forms.CharField(required=False, help_text=help_text, initial=param.default)
                 elif param.type == ParameterTypes.POSITIONAL:
-                    field = forms.CharField(required=True, help_text=help_text)
+                    field = forms.CharField(required=True, help_text=help_text, initial=param.default)
 
                 self.fields[name] = field
     
