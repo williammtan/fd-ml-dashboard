@@ -106,21 +106,40 @@ class NER_MANUAL(PatternBase):
 
 class NER_CORRECT(PatternBase):
     recipe = 'ner.manual'
-    update = ParameterTypes.FLAG
-    unsegmented = ParameterTypes.FLAG
-    component = ParameterTypes.VARIABLE
+    update = Parameter(ParameterTypes.FLAG, help='Update the model in the loop with the received annotations.')
+    unsegmented = Parameter(ParameterTypes.FLAG, help='Don’t split sentences.')
+    component = Parameter(ParameterTypes.VARIABLE, help='Name of NER component in the pipeline.')
 
 class NER_TEACH(PatternBase):
     recipe = 'ner.teach'
-    patterns = ParameterTypes.VARIABLE
-    exclude = ParameterTypes.VARIABLE
-    unsegmented = ParameterTypes.FLAG
+    patterns = Parameter(ParameterTypes.VARIABLE, help='Optional path to match patterns file to pre-highlight entity spans in addition to those suggested by the model.')
+    exclude = Parameter(ParameterTypes.VARIABLE, help='Comma-separated list of dataset IDs containing annotations to exclude.')
+    unsegmented = Parameter(ParameterTypes.FLAG, help='Don’t split sentences.')
 
+class TEXTCAT_MANUAL(PatternBase):
+    recipe = 'textcat.manual'
+    exclusive = Parameter(ParameterTypes.FLAG, help='Treat labels as mutually exclusive. If not set, an example may have multiple correct classes.')
+    exclude = Parameter(ParameterTypes.VARIABLE, help='Comma-separated list of dataset IDs containing annotations to exclude.')
+
+class TEXTCAT_CORRECT(PatternBase):
+    recipe = 'textcat.correct'
+    update = Parameter(ParameterTypes.FLAG, help='Update the model in the loop with the received annotations.')
+    threshold = Parameter(ParameterTypes.VARIABLE, help='Score threshold to pre-select label, e.g. 0.75 to select all labels with a score of 0.75 and above.')
+    component = Parameter(ParameterTypes.VARIABLE, help='Name of text classification component in the pipeline. Will be guessed if not set.')
+    exclude = Parameter(ParameterTypes.VARIABLE, help='Comma-separated list of dataset IDs containing annotations to exclude.')
+
+class TEXTCAT_TEACH(PatternBase):
+    recipe = 'textcat.teach'
+    patterns = Parameter(ParameterTypes.VARIABLE, help='Optional path to match patterns file to filter out examples containing terms and phrases.')
+    exclude = Parameter(ParameterTypes.VARIABLE, help='Comma-separated list of dataset IDs containing annotations to exclude.')
 
 RECIPE_PATTERNS = {
     'ner.manual': NER_MANUAL(),
     'ner.correct': NER_CORRECT(),
-    'ner.teach': NER_TEACH()
+    'ner.teach': NER_TEACH(),
+    'textcat.manual': TEXTCAT_MANUAL(),
+    'textcat.correct': TEXTCAT_CORRECT(),
+    'textcat.teach': TEXTCAT_TEACH()
 }
 
 RESERVED_FIELDS = ['recipe', 'dataset', 'source']

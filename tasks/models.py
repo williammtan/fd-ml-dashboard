@@ -17,6 +17,9 @@ class Session(models.Model):
         ner_manual = 'ner.manual'
         ner_correct = 'ner.correct'
         ner_teach = 'ner.teach'
+        textcat_manual = 'textcat.manual'
+        textcat_correct = 'textcat.correct'
+        textcat_teach = 'textcat.teach'
 
     class Statuses(models.TextChoices):
         active = 'Active'
