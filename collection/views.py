@@ -5,6 +5,8 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from .models import Collection
 
+from .models import ProductCategory
+
 class IndexView(generic.ListView):
     template_name = 'collections/index.html'
     model = Collection
@@ -22,10 +24,20 @@ class CollectionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(CollectionForm, self).__init__(*args, **kwargs)
         for field in self.fields.values():
-            field.widget.attrs = {
-                'class': 'form-control',
-                'id': field.label.lower()
-            }
+            if type(field) == forms.ModelMultipleChoiceField:
+                field.widget.attrs = {
+                'class': 'selectpicker',
+                'id': field.label.lower(),
+                'data-size': 10,
+                'data-width': 'fit'
+                }
+            else:
+                field.widget.attrs = {
+                    'class': 'form-control',
+                    'id': field.label.lower()
+                }
+        
+        self.fields['categories'].queryset = ProductCategory.objects.filter(level=1) # filter main category
 
     class Meta:
         fields = ('name', 'description', 'categories') 
