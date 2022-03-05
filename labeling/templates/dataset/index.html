@@ -42,6 +42,12 @@
             $(this).modalForm({
                 formURL: $(this).data("form-url")})
         });
+
+        $(".delete-dataset").each(function () {
+            $(this).modalForm({
+                formURL: $(this).data("form-url"), isDeleteForm: true
+            });
+        });
     
     });
 </script>

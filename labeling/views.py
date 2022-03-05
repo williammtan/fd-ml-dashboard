@@ -7,7 +7,7 @@ from django.urls import reverse_lazy
 from collection.models import Collection, Product
 from .models import Dataset
 from django.forms.models import model_to_dict
-from bootstrap_modal_forms.generic import BSModalCreateView, BSModalUpdateView
+from bootstrap_modal_forms.generic import BSModalCreateView, BSModalUpdateView, BSModalDeleteView
 from .forms import DatasetModelForm
 
 class IndexView(generic.ListView):
@@ -56,6 +56,12 @@ class DatasetEditView(BSModalUpdateView):
     template_name = 'dataset/edit.html'
     form_class = DatasetModelForm
     success_message = 'Success: Dataset was updated.'
+    success_url = reverse_lazy('labeling:index')
+
+class DatasetDeleteView(BSModalDeleteView):
+    model = Dataset
+    template_name = 'dataset/delete.html'
+    success_message = 'Success: Dataset was deleted.'
     success_url = reverse_lazy('labeling:index')
 
 
