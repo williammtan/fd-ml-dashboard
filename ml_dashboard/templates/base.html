@@ -17,6 +17,7 @@
 </head>
 
 <body class="sb-nav-fixed">
+    
     <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
         <!-- Navbar Brand-->
         <a class="navbar-brand ps-3" href="/">FOOD.ID Dashboard</a>
@@ -30,6 +31,12 @@
         <div id="layoutSidenav_content">
             <main>
                 <div class="container-fluid px-4">
+                    <div class="modal fade" tabindex="-1" role="dialog" id="modal">
+                        <div class="modal-dialog" role="document">
+                          <div class="modal-content"></div>
+                        </div>
+                    </div>
+
                     {% block content %}{% endblock %}
                 </div>
             </main>

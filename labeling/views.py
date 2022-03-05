@@ -46,7 +46,8 @@ class DatasetForm(forms.ModelForm):
 
 
 class DatasetCreateView(BSModalCreateView):
-    template_name = 'dataset/create.html'
+    display_name = 'Dataset'
+    template_name = 'create_modal.html'
     form_class = DatasetModelForm
     success_message = 'Success: Dataset was created.'
     success_url = reverse_lazy('labeling:index')
