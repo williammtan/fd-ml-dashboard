@@ -67,7 +67,8 @@ INSTALLED_APPS = [
     'django_celery_beat',
     'django_extensions',
     'taggit',
-    'bootstrap_modal_forms'
+    'bootstrap_modal_forms',
+    'widget_tweaks'
 ]
 
 MIDDLEWARE = [
