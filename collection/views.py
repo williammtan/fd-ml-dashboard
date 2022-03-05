@@ -5,6 +5,8 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from .models import Collection
 
+from .models import ProductCategory
+
 class IndexView(generic.ListView):
     template_name = 'collections/index.html'
     model = Collection
@@ -34,6 +36,8 @@ class CollectionForm(forms.ModelForm):
                     'class': 'form-control',
                     'id': field.label.lower()
                 }
+        
+        self.fields['categories'].queryset = ProductCategory.objects.filter(level=1) # filter main category
 
     class Meta:
         fields = ('name', 'description', 'categories') 
