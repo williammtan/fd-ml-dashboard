@@ -4,13 +4,18 @@
 
 <title>Datasets</title>
 
+<div class="modal fade" tabindex="-1" role="dialog" id="modal">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content"></div>
+    </div>
+</div>
 
 <div class="d-flex align-items-center justify-content-between">
     <div class="float-start">
         <h1 class="mt-4">Dataset</h1>
     </div>
     <div class="float-end vertical-align">
-        <a class="btn btn-success" href="/dataset/new">Create Dataset</a>
+        <a id="create-dataset" class="btn btn-success">Create Dataset</a>
     </div>
 </div>
 
@@ -53,5 +58,15 @@
 {% else %}
     <p>No dataset are available.</p>
 {% endif %}
+
+<script type="text/javascript">
+    $(document).ready(function() {
+    
+        $("#create-dataset").modalForm({
+            formURL: "{% url 'labeling:create' %}"
+        });
+    
+    });
+</script>
 
 {% endblock %}

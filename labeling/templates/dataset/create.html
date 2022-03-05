@@ -1,18 +1,28 @@
-{% extends 'base.html' %}
-
-
-{% block content %}
-
-<title>Create Dataset</title>
-
-<h1 class="mt-4">Create Dataset</h1>
-<ol class="breadcrumb mb-4">
-    <li class="breadcrumb-item active">Dashboard / <a href='/dataset'>Datasets</a> / new</li>
-</ol>
-
-<form method="post">{% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Create dataset</button>
+<form method="post" action="">
+    {% csrf_token %}
+  
+   <div class="modal-header">
+      <h5 class="modal-title">Create new Dataset</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+    </div>
+  
+    <div class="modal-body">
+      {% for field in form %}
+        <div class="form-group{% if field.errors %} invalid{% endif %}">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% for error in field.errors %}
+            <p class="help-block">{{ error }}</p>
+          {% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+  
+    <div class="modal-footer">
+      <button type="button" class="btn btn-default" data-bs-dismiss="modal">Close</button>
+      <button type="submit" class="btn btn-primary">Create</button>
+    </div>
+  
 </form>
 
 <script>
@@ -22,5 +32,3 @@
         document.getElementById(p[0]).value = p[1];
     }
 </script>
-
-{% endblock %}
