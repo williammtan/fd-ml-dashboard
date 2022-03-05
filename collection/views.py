@@ -22,10 +22,18 @@ class CollectionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(CollectionForm, self).__init__(*args, **kwargs)
         for field in self.fields.values():
-            field.widget.attrs = {
-                'class': 'form-control',
-                'id': field.label.lower()
-            }
+            if type(field) == forms.ModelMultipleChoiceField:
+                field.widget.attrs = {
+                'class': 'selectpicker',
+                'id': field.label.lower(),
+                'data-size': 10,
+                'data-width': 'fit'
+                }
+            else:
+                field.widget.attrs = {
+                    'class': 'form-control',
+                    'id': field.label.lower()
+                }
 
     class Meta:
         fields = ('name', 'description', 'categories') 
