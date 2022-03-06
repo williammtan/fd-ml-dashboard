@@ -9,21 +9,11 @@
         <h1 class="mt-4">Collections</h1>
     </div>
     <div class="float-end vertical-align">
-        <a class="btn btn-success" href="/collection/new">Create Collection</a>
+        <a id="create-collection" class="btn btn-success">Create Collection</a>
     </div>
 </div>
 
 {% if collection_list %}
-
-    <!-- <ul>
-        {% for collection in collection_list %}
-        {% with collection.categories.all|first as category %}
-        <li>
-            <a href="{% url 'collection:detail' collection.id %}">{{collection.name}}</a>
-        </li>
-        {% endwith %}
-        {% endfor %}
-    </ul> -->
 
     <table class="table">
         <thead>
@@ -32,6 +22,7 @@
                 <th scope="col">Name</th>
                 <th scope="col">No. Categories</th>
                 <th scope="col">No. Datasets</th>
+                <th scope="col">Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -41,6 +32,14 @@
                     <td style="text-transform: capitalize;">{{ collection.name }}</td>
                     <td>{{ collection.categories.count }}</td>
                     <td>{{ collection.dataset_choice.count }}</td>
+                    <td>
+                        <button type="button" class="update-collection btn btn-sm btn-primary" data-form-url="{% url 'collection:edit' collection.pk %}">
+                            <span class="fa fa-edit"></span>
+                          </button>
+                        <button type="button" class="delete-collection bs-modal btn btn-sm btn-danger" data-form-url="{% url 'collection:delete' collection.pk %}">
+                            <span class="fa fa-trash"></span>
+                        </button>    
+                    </td>
                 </tr>
             {% endfor %}
         </tbody>
@@ -52,5 +51,27 @@
 {% else %}
     <p>No collections are available.</p>
 {% endif %}
+
+<script type="text/javascript">
+    $(document).ready(function() {
+    
+        $("#create-collection").modalForm({
+            formURL: "{% url 'collection:create' %}"
+        });
+
+
+        $(".update-collection").each(function () {
+            $(this).modalForm({
+                formURL: $(this).data("form-url")})
+        });
+
+        $(".delete-collection").each(function () {
+            $(this).modalForm({
+                formURL: $(this).data("form-url"), isDeleteForm: true
+            });
+        });
+    
+    });
+</script>
 
 {% endblock %}

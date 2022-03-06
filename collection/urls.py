@@ -6,7 +6,7 @@ app_name = 'collection'
 urlpatterns = [
     path('', views.IndexView.as_view(), name='index'),
     path('<int:pk>/', views.DetailView.as_view(), name='detail'),
-    path('new/', views.CreateView.as_view(), name='create')
-    # path('<int:pk>/results/', views.ResultsView.as_view(), name='results'),
-    # path('<int:question_id>/vote/', views.vote, name='vote'),
+    path('new/', views.CollectionCreateView.as_view(), name='create'),
+    path('edit/<int:pk>', views.CollectionEditView.as_view(), name='edit'),
+    path('delete/<int:pk>', views.CollectionDeleteView.as_view(), name='delete')
 ]
