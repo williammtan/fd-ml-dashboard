@@ -66,7 +66,9 @@ INSTALLED_APPS = [
     'rest_framework_datatables',
     'django_celery_beat',
     'django_extensions',
-    'taggit'
+    'taggit',
+    'bootstrap_modal_forms',
+    'widget_tweaks'
 ]
 
 MIDDLEWARE = [

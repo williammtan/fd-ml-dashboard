@@ -4,47 +4,17 @@
 
 <title>Datasets</title>
 
-
 <div class="d-flex align-items-center justify-content-between">
     <div class="float-start">
         <h1 class="mt-4">Dataset</h1>
     </div>
     <div class="float-end vertical-align">
-        <a class="btn btn-success" href="/dataset/new">Create Dataset</a>
+        <a id="create-dataset" class="btn btn-success">Create Dataset</a>
     </div>
 </div>
 
 {% if dataset_list %}
-<table class="table">
-    <thead>
-        <tr>
-            <th scope="col">ID</th>
-            <th scope="col">Name</th>
-            <th scope="col">Collection</th>
-            <th scope="col">Mode</th>
-            <th scope="col">Total Sessions</th>
-            <th scope="col">Active Sessions</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for dataset in dataset_list %}
-            <tr>
-                <th scope="row"><a href="/dataset/{{ dataset.id }}">{{ dataset.id }}</a></th>
-                <td style="text-transform: capitalize;">{{ dataset.name }}</td>
-                <td><code><a href="/collection/{{ dataset.get_collection.id }}">{{ dataset.get_collection.name }}</a></code></td>
-                <td><code>{{ dataset.mode }}</code></td>
-                <td>{{ dataset.sessions.count }}</td>
-                <td>
-                    <b
-                    class = "{% if dataset.sessions.count == 0 %} text-dark {% elif dataset.get_active_sessions.count != 0 %} text-success {% else %} text-danger {% endif %}"
-                    >
-                        {{ dataset.get_active_sessions.count }}
-                    </b>
-                </td>
-            </tr>
-        {% endfor %}
-    </tbody>
-</table>
+{% include "dataset/table.html" %}
 
 <div class="float-end">
     {% include 'pagination.html' %}
@@ -53,5 +23,27 @@
 {% else %}
     <p>No dataset are available.</p>
 {% endif %}
+
+<script type="text/javascript">
+    $(document).ready(function() {
+    
+        $("#create-dataset").modalForm({
+            formURL: "{% url 'labeling:create' %}"
+        });
+
+
+        $(".update-dataset").each(function () {
+            $(this).modalForm({
+                formURL: $(this).data("form-url")})
+        });
+
+        $(".delete-dataset").each(function () {
+            $(this).modalForm({
+                formURL: $(this).data("form-url"), isDeleteForm: true
+            });
+        });
+    
+    });
+</script>
 
 {% endblock %}

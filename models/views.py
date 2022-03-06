@@ -3,9 +3,11 @@ from django.http import HttpResponseNotFound, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django import forms
+from bootstrap_modal_forms.generic import BSModalCreateView, BSModalUpdateView, BSModalDeleteView
 
 from .models import Model, Prediction, PredictionResult, Train
 from collection.models import Collection
+from .forms import ModelForm
 
 class ModelIndexView(generic.ListView):
     model = Model
@@ -19,35 +21,25 @@ class ModelDetailView(generic.DetailView):
     template_name = 'models/detail.html'
 
 
-class ModelForm(forms.ModelForm):
-    collection = forms.ModelChoiceField(Collection.objects.all())
-    error_css_class = 'invalid-feedback'
-
-    def __init__(self, *args, **kwargs):
-        super(ModelForm, self).__init__(*args, **kwargs)
-        for field in self.fields.values():
-            if field.label is not None:
-                field.widget.attrs = {
-                    'class': 'form-control',
-                    'id': field.label.lower()
-                }
-    
-    def clean_collection(self):
-        self.cleaned_data['collection'] = self.cleaned_data.get('collection').id
-        collection = self.cleaned_data.get('collection', False)
-        return collection
-
-    class Meta:
-        fields = ('name', 'mode', 'tags', 'collection') 
-        model = Model
-
-class CreateModelView(generic.edit.CreateView):
-    model = Model
-    template_name = 'models/create.html'
+class CreateModelView(BSModalCreateView):
+    display_name = 'Model'
+    template_name = 'create_modal.html'
     form_class = ModelForm
+    success_message = 'Success: Model was created.'
+    success_url = reverse_lazy('models:model_index')
 
-    def get_success_url(self):
-        return reverse_lazy('models:model_detail', kwargs={'pk': self.object.id})
+class EditModelView(BSModalUpdateView):
+    model = Model
+    template_name = 'models/edit.html'
+    form_class = ModelForm
+    success_message = 'Success: Model was updated.'
+    success_url = reverse_lazy('models:model_index')
+
+class DeleteModelView(BSModalDeleteView):
+    model = Model
+    template_name = 'models/delete.html'
+    success_message = 'Success: Model was deleted.'
+    success_url = reverse_lazy('models:model_index')
 
 class TrainIndexView(generic.ListView):
     model = Train
