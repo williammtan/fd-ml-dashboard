@@ -7,10 +7,13 @@ from django import forms
 from djproxy.views import HttpProxy
 from rest_framework import serializers, viewsets
 from django.utils.safestring import mark_safe
+from django.urls import reverse_lazy
+from bootstrap_modal_forms.generic import BSModalUpdateView, BSModalDeleteView
 
 from .patterns import RECIPE_PATTERNS, ParameterTypes, RESERVED_FIELDS
 from .models import Session
 from .serializers import SessionSerializer
+from .forms import SessionModelForm
 
 class ProxyView(HttpProxy):
     base_url = 'http://localhost:'
@@ -127,3 +130,17 @@ def stop_session(request, session_id):
     
     session.close()
     return redirect('tasks:detail', pk=session_id)
+
+class SessionDeleteView(BSModalDeleteView):
+    model = Session
+    template_name = 'sessions/delete.html'
+    success_message = 'Success: Session was deleted.'
+    success_url = reverse_lazy('tasks:index')
+
+class SessionEditView(BSModalUpdateView):
+    model = Session
+    template_name = 'sessions/edit.html'
+    form_class = SessionModelForm
+    success_message = 'Success: Session was updated.'
+    success_url = reverse_lazy('tasks:index')
+

@@ -22,7 +22,8 @@
                 <th scope="col">Name</th>
                 <th scope="col">Recipe</th>
                 <th scope="col">Dataset</th>
-                <th scope="col">Status</tf>
+                <th scope="col">Status</th>
+                <th scope="col">Action</th>
             </tr>
         </thead>
         <tbody>
@@ -35,6 +36,14 @@
                     <td>
                         <b class="{{ session.active|yesno:"text-success,text-danger" }}">{{ session.status }}</b>
                     </td>
+                    <td>
+                        <button type="button" class="update-session btn btn-sm btn-primary" data-form-url="{% url 'tasks:edit' session.pk %}">
+                            <span class="fa fa-edit"></span>
+                        </button>
+                        <button type="button" class="delete-session bs-modal btn btn-sm btn-danger" data-form-url="{% url 'tasks:delete' session.pk %}">
+                            <span class="fa fa-trash"></span>
+                        </button>
+                    </td>
                 </tr>
             {% endfor %}
         </tbody>
@@ -46,5 +55,22 @@
 {% else %}
     <p>No sessions are available.</p>
 {% endif %}
+
+<script type="text/javascript">
+    $(document).ready(function() {
+
+        $(".update-session").each(function () {
+            $(this).modalForm({
+                formURL: $(this).data("form-url")})
+        });
+
+        $(".delete-session").each(function () {
+            $(this).modalForm({
+                formURL: $(this).data("form-url"), isDeleteForm: true
+            });
+        });
+    
+    });
+</script>
 
 {% endblock %}
