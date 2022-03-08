@@ -132,8 +132,8 @@ class Example(models.Model):
         db_table = 'example'
 
 class Link(models.Model):
-    example = models.ForeignKey(Example, models.DO_NOTHING, default=0)
-    dataset = models.ForeignKey(Dataset, models.DO_NOTHING, default=0)
+    example = models.ForeignKey(Example, models.CASCADE, default=0)
+    dataset = models.ForeignKey(Dataset, models.CASCADE, default=0)
 
     class Meta:
         db_table = 'link'
