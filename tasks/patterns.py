@@ -1,9 +1,56 @@
 from enum import Enum
+from django import forms
+from django.utils.safestring import mark_safe
+import os
+
+from models.models import Model
 
 class ParameterTypes(Enum):
     POSITIONAL = 'pos'
     VARIABLE = 'var'
     FLAG = 'flag'
+
+class Parameter:
+    def __init__(self, type, default=None, help='', required=False):
+        self.type = type
+        self.default = default
+        self.help = help
+        if self.type == ParameterTypes.POSITIONAL: # always required if the parameter is positional
+            self.required = True
+        else:
+            self.required = required
+    
+    def generate_field(self):
+        """Return a django Form Field"""
+        help_text = mark_safe(f'<a class="helptext">?<span>{self.help}</span></a>')
+
+        if self.type == ParameterTypes.FLAG:
+            field = forms.BooleanField(required=False, help_text=help_text, initial=self.default)
+        elif self.type == ParameterTypes.VARIABLE:
+            field = forms.CharField(required=False or self.required, help_text=help_text, initial=self.default)
+        elif self.type == ParameterTypes.POSITIONAL:
+            field = forms.CharField(required=True, help_text=help_text, initial=self.default)
+
+        return field
+    
+    def clean(self, data):
+        """Clean output from cleaned_data"""
+        return None if data == '' else data
+
+class ModelParameter(Parameter):
+    def __init__(self, model, type, default=None, help='', required=False):
+        self.model = model
+        super().__init__(type=type, default=default, help=help, required=required)
+    
+    def generate_field(self):
+        choices = [(m.id, str(m)) for m in self.model.objects.all()]
+        field = forms.ChoiceField(choices=choices)
+        return field
+    
+    def clean(self, id):
+        """Clean output from cleaned_data"""
+        return os.path.join(self.model.objects.get(pk=id).file_path, 'model-best')
+
 
 MODEL_PATTERN = '{recipe} {dataset} {model} {source} %s'
 NO_MODEL_PATTERN = '{recipe} {dataset} {source} %s'
@@ -11,19 +58,21 @@ NO_MODEL_PATTERN = '{recipe} {dataset} {source} %s'
 class PatternBase:
     recipe = 'NaN' # this should be overiden
     command = MODEL_PATTERN # this also should be overiden
-    dataset = ParameterTypes.POSITIONAL
-    model = ParameterTypes.POSITIONAL
-    source = ParameterTypes.POSITIONAL
-    loader = ParameterTypes.VARIABLE
-    label = ParameterTypes.VARIABLE
+    dataset = Parameter(ParameterTypes.POSITIONAL, help='Prodigy dataset to save annotations to.')
+    label = Parameter(ParameterTypes.VARIABLE, help='Comma-separated list of labels to annotate (eg. MYLABEL,MYOTHERLABEL)', required=True)
+    model = ModelParameter(Model, ParameterTypes.POSITIONAL, default='blank:id', help='Loadable spaCy pipeline for tokenization or blank:lang for a blank model (e.g. blank:id for Indonesian).', required=True)
+    source = Parameter(ParameterTypes.POSITIONAL, help='Path to text source or - to read from standard input.')
+    loader = Parameter(ParameterTypes.VARIABLE, help='Optional ID of text source loader. If not set, source file extension is used to determine loader.')
 
     def __init__(self):
         self.parameters = {
             self.process_parameter(var): self.__getattribute__(var)
             for var in self.__dir__() 
-            if not var.startswith('__') and not var.endswith('__') and type(self.__getattribute__(var)) == ParameterTypes
+            if not var.startswith('__') and not var.endswith('__') 
+            and (type(self.__getattribute__(var)) == Parameter or issubclass(type(self.__getattribute__(var)), Parameter))
+            and type(self.__getattribute__(var).type) == ParameterTypes
         }
-        self.parameters.update({'recipe': ParameterTypes.POSITIONAL})
+        self.parameters.update({'recipe': Parameter(ParameterTypes.POSITIONAL, help='Prodigy recipe')})
     
     def process_parameter(self, text):
         return text.replace('_', '-')
@@ -41,69 +90,56 @@ class PatternBase:
                     pass
 
             if k in self.parameters:
-                if self.parameters[k] == ParameterTypes.VARIABLE and (v and v != ''):
+                if self.parameters[k].type == ParameterTypes.VARIABLE and (v and v != ''):
                     extra_params += f' --{k} {v}' # eg. --label TEST,HAHA
-                elif self.parameters[k] == ParameterTypes.FLAG and (v and v != ''): # if it's a flag and the value is true or not null
+                elif self.parameters[k].type == ParameterTypes.FLAG and (v and v != ''): # if it's a flag and the value is true or not null
                     extra_params += f' --{k}'
 
         return self.command.format(**kwargs) %extra_params
 
-COMMAND = {
-    'recipe': 'ner.manual',
-    'dataset': 'test_ner',
-    'source': 'source.json',
-    'model': 'blank:id',
-    'highlight_chars': 's',
-    'label': ['test', 'test2']
-}
-
 class NER_MANUAL(PatternBase):
     recipe = 'ner.manual'
-    patterns = ParameterTypes.VARIABLE
-    exclude = ParameterTypes.VARIABLE
-    highlight_chars = ParameterTypes.FLAG
+    model = Parameter(ParameterTypes.POSITIONAL, default='blank:id', help='Loadable spaCy pipeline for tokenization or blank:lang for a blank model (e.g. blank:id for Indonesian).', required=True)
+    patterns = Parameter(ParameterTypes.VARIABLE, help='Optional path to match patterns file to pre-highlight entity spans.')
+    exclude = Parameter(ParameterTypes.VARIABLE, help='Comma-separated list of dataset IDs containing annotations to exclude.')
+    highlight_chars = Parameter(ParameterTypes.FLAG, help=' Allow highlighting individual characters instead of snapping to token boundaries. If set, no "tokens" information will be saved with the example.')
 
 class NER_CORRECT(PatternBase):
     recipe = 'ner.manual'
-    update = ParameterTypes.FLAG
-    unsegmented = ParameterTypes.FLAG
-    component = ParameterTypes.VARIABLE
+    update = Parameter(ParameterTypes.FLAG, help='Update the model in the loop with the received annotations.')
+    unsegmented = Parameter(ParameterTypes.FLAG, help='Don’t split sentences.')
+    component = Parameter(ParameterTypes.VARIABLE, help='Name of NER component in the pipeline.')
 
 class NER_TEACH(PatternBase):
     recipe = 'ner.teach'
-    patterns = ParameterTypes.VARIABLE
-    exclude = ParameterTypes.VARIABLE
-    unsegmented = ParameterTypes.FLAG
+    patterns = Parameter(ParameterTypes.VARIABLE, help='Optional path to match patterns file to pre-highlight entity spans in addition to those suggested by the model.')
+    exclude = Parameter(ParameterTypes.VARIABLE, help='Comma-separated list of dataset IDs containing annotations to exclude.')
+    unsegmented = Parameter(ParameterTypes.FLAG, help='Don’t split sentences.')
 
-class TRAIN(PatternBase):
-    recipe = 'train'
-    output_dir = ParameterTypes.POSITIONAL
+class TEXTCAT_MANUAL(PatternBase):
+    recipe = 'textcat.manual'
+    exclusive = Parameter(ParameterTypes.FLAG, help='Treat labels as mutually exclusive. If not set, an example may have multiple correct classes.')
+    exclude = Parameter(ParameterTypes.VARIABLE, help='Comma-separated list of dataset IDs containing annotations to exclude.')
 
-    ner = ParameterTypes.FLAG
-    textcat = ParameterTypes.FLAG
-    textcat_multilabel = ParameterTypes.FLAG
-    database = ParameterTypes.POSITIONAL # flag before positional
+class TEXTCAT_CORRECT(PatternBase):
+    recipe = 'textcat.correct'
+    update = Parameter(ParameterTypes.FLAG, help='Update the model in the loop with the received annotations.')
+    threshold = Parameter(ParameterTypes.VARIABLE, help='Score threshold to pre-select label, e.g. 0.75 to select all labels with a score of 0.75 and above.')
+    component = Parameter(ParameterTypes.VARIABLE, help='Name of text classification component in the pipeline. Will be guessed if not set.')
+    exclude = Parameter(ParameterTypes.VARIABLE, help='Comma-separated list of dataset IDs containing annotations to exclude.')
 
-    base_model = ParameterTypes.VARIABLE
-    eval_split = ParameterTypes.VARIABLE
-    lang = ParameterTypes.VARIABLE
-    gpu_id = ParameterTypes.VARIABLE
-
-    label_stats = ParameterTypes.FLAG
-    verbose = ParameterTypes.FLAG
-    silent = ParameterTypes.FLAG
-    
-
+class TEXTCAT_TEACH(PatternBase):
+    recipe = 'textcat.teach'
+    patterns = Parameter(ParameterTypes.VARIABLE, help='Optional path to match patterns file to filter out examples containing terms and phrases.')
+    exclude = Parameter(ParameterTypes.VARIABLE, help='Comma-separated list of dataset IDs containing annotations to exclude.')
 
 RECIPE_PATTERNS = {
     'ner.manual': NER_MANUAL(),
     'ner.correct': NER_CORRECT(),
     'ner.teach': NER_TEACH(),
-    'train': TRAIN()
-    # 'ner.teach': MODEL_PATTERN %('ner.teach'),
-    # 'textcat.manual': NO_MODEL_PATTERN %('textcat.manual'),
-    # 'textcat.correct': MODEL_PATTERN %('textcat.correct'),
-    # 'textcat.teach': MODEL_PATTERN %('textcat.teach')
+    'textcat.manual': TEXTCAT_MANUAL(),
+    'textcat.correct': TEXTCAT_CORRECT(),
+    'textcat.teach': TEXTCAT_TEACH()
 }
 
 RESERVED_FIELDS = ['recipe', 'dataset', 'source']

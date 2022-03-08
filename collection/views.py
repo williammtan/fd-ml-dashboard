@@ -4,6 +4,10 @@ from django.urls import reverse_lazy
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from .models import Collection
+from bootstrap_modal_forms.generic import BSModalCreateView, BSModalUpdateView, BSModalDeleteView
+
+from .models import ProductCategory
+from .forms import CollectionModelForm
 
 class IndexView(generic.ListView):
     template_name = 'collections/index.html'
@@ -17,26 +21,22 @@ class DetailView(generic.DetailView):
     template_name = 'collections/detail.html'
 
 
-class CollectionForm(forms.ModelForm):
+class CollectionCreateView(BSModalCreateView):
+    display_name = 'Collection'
+    template_name = 'create_modal.html'
+    form_class = CollectionModelForm
+    success_message = 'Success: Collection was created.'
+    success_url = reverse_lazy('collection:index')
 
-    def __init__(self, *args, **kwargs):
-        super(CollectionForm, self).__init__(*args, **kwargs)
-        for field in self.fields.values():
-            field.widget.attrs = {
-                'class': 'form-control',
-                'id': field.label.lower()
-            }
-
-    class Meta:
-        fields = ('name', 'description', 'categories') 
-        model = Collection
-
-
-class CreateView(generic.edit.CreateView):
+class CollectionEditView(BSModalUpdateView):
     model = Collection
-    template_name = 'collections/create.html'
-    form_class = CollectionForm
+    template_name = 'collections/edit.html'
+    form_class = CollectionModelForm
+    success_message = 'Success: Collection was updated.'
+    success_url = reverse_lazy('collection:index')
 
-    def get_success_url(self):
-        return reverse_lazy('collection:detail', kwargs={'pk': self.object.id})
-
+class CollectionDeleteView(BSModalDeleteView):
+    model = Collection
+    template_name = 'collections/delete.html'
+    success_message = 'Success: Collection was deleted.'
+    success_url = reverse_lazy('collection:index')

@@ -45,6 +45,8 @@ services:
       - ./:/usr/src/app
     links:
       - redis
+    ports:
+      - "${PRODIGY_PORT_START}-${PRODIGY_PORT_END}:${PRODIGY_PORT_START}-${PRODIGY_PORT_END}"
     depends_on:
       - redis
     command: ['celery', '-A', 'ml_dashboard', 'worker', '-l', '${LOG_LEVEL}']

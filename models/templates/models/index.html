@@ -9,7 +9,7 @@
         <h1 class="mt-4">Models</h1>
     </div>
     <div class="float-end vertical-align">
-        <a class="btn btn-success" href="/models/new">Create model</a>
+        <a id="create-model" class="btn btn-success">Create model</a>
     </div>
 </div>
 
@@ -22,6 +22,7 @@
                 <th scope="col">Name</th>
                 <th scope="col">Mode</th>
                 <th scope="col">Tags</th>
+                <th scope="col">Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -35,6 +36,14 @@
                             <code>{{ tag }}</code> &nbsp
                         {% endfor %}
                     </td>
+                    <td>
+                        <button type="button" class="update-model btn btn-sm btn-primary" data-form-url="{% url 'models:edit_model' model.pk %}">
+                            <span class="fa fa-edit"></span>
+                        </button>
+                        <button type="button" class="delete-model bs-modal btn btn-sm btn-danger" data-form-url="{% url 'models:delete_model' model.pk %}">
+                            <span class="fa fa-trash"></span>
+                        </button>
+                    </td>
                 </tr>
             {% endfor %}
         </tbody>
@@ -46,5 +55,26 @@
 {% else %}
     <p>No models are available.</p>
 {% endif %}
+
+<script type="text/javascript">
+    $(document).ready(function() {
+    
+        $("#create-model").modalForm({
+            formURL: "{% url 'models:create_model' %}"
+        });
+
+        $(".update-model").each(function () {
+            $(this).modalForm({
+                formURL: $(this).data("form-url")})
+        });
+
+        $(".delete-model").each(function () {
+            $(this).modalForm({
+                formURL: $(this).data("form-url"), isDeleteForm: true
+            });
+        });
+    
+    });
+</script>
 
 {% endblock %}

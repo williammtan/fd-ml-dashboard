@@ -6,10 +6,14 @@ from django.conf import settings
 from django import forms
 from djproxy.views import HttpProxy
 from rest_framework import serializers, viewsets
+from django.utils.safestring import mark_safe
+from django.urls import reverse_lazy
+from bootstrap_modal_forms.generic import BSModalUpdateView, BSModalDeleteView
 
 from .patterns import RECIPE_PATTERNS, ParameterTypes, RESERVED_FIELDS
 from .models import Session
 from .serializers import SessionSerializer
+from .forms import SessionModelForm
 
 class ProxyView(HttpProxy):
     base_url = 'http://localhost:'
@@ -61,24 +65,18 @@ class SessionForm(forms.ModelForm):
                 field.initial = self.recipe_value
         
         if self.options is not None:
-            for i, (name, param_type) in enumerate(self.options.parameters.items()):
+            for i, (name, param) in enumerate(self.options.parameters.items()):
                 if name in RESERVED_FIELDS:
                     continue
 
-                if param_type == ParameterTypes.FLAG:
-                    field = forms.BooleanField(required=False)
-                elif param_type == ParameterTypes.VARIABLE:
-                    field = forms.CharField(required=False)
-                elif param_type == ParameterTypes.POSITIONAL:
-                    field = forms.CharField(required=True)
-
+                field = param.generate_field()
                 self.fields[name] = field
     
     def get_options(self):
         options = {}
         for name, v in self.cleaned_data.items():
             if name not in RESERVED_FIELDS and self.options.parameters.get(name) is not None:
-                options[name] = None if v == '' else v
+                options[name] = self.options.parameters[name].clean(v)
         return options
 
     class Meta:
@@ -106,7 +104,6 @@ class RecipeForm(forms.Form):
 
 def get_recipe(request):
     recipes = list(RECIPE_PATTERNS.keys())
-    print(recipes)
     if request.method == 'POST':
         recipe = request.POST.get('recipe')
         if recipe:
@@ -133,3 +130,17 @@ def stop_session(request, session_id):
     
     session.close()
     return redirect('tasks:detail', pk=session_id)
+
+class SessionDeleteView(BSModalDeleteView):
+    model = Session
+    template_name = 'sessions/delete.html'
+    success_message = 'Success: Session was deleted.'
+    success_url = reverse_lazy('tasks:index')
+
+class SessionEditView(BSModalUpdateView):
+    model = Session
+    template_name = 'sessions/edit.html'
+    form_class = SessionModelForm
+    success_message = 'Success: Session was updated.'
+    success_url = reverse_lazy('tasks:index')
+

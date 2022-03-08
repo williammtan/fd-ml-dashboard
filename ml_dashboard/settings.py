@@ -43,6 +43,7 @@ ES = Elasticsearch(env('ELASTICSEARCH_HOST'))
 ES_INDEX = env('ELASTICSEARCH_INDEX')
 DEFAULT_SIZE = env('DEFAULT_SIZE')
 REDIS_PORT = env('REDIS_PORT')
+PRODIGY_PORT_START = int(env('PRODIGY_PORT_START'))
 
 # Application definition
 
@@ -65,7 +66,9 @@ INSTALLED_APPS = [
     'rest_framework_datatables',
     'django_celery_beat',
     'django_extensions',
-    'taggit'
+    'taggit',
+    'bootstrap_modal_forms',
+    'widget_tweaks'
 ]
 
 MIDDLEWARE = [
