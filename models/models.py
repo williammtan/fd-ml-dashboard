@@ -36,7 +36,7 @@ class Model(models.Model):
             self.path = self.name
         
         if not os.path.isdir(self.file_path):
-            os.makedirs(self.file_path)
+            os.makedirs(self.file_path, exist_ok=True)
 
         super(Model, self).save(*args, **kwargs)
     

@@ -30,7 +30,7 @@ class TaskSessionBase(Task):
             # if not already filled, fill
             logging.info('No source file for collection found, creating one now...(this may take a while)')
             dirname = os.path.dirname(source_path)
-            os.makedirs(dirname)
+            os.makedirs(dirname, exist_ok=True)
             with jsonlines.open(source_path, 'w') as writer:
                 for p in tqdm(products):
                     writer.write({
