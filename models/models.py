@@ -68,7 +68,7 @@ class Train(models.Model):
 
     name = models.CharField(max_length=200)
     model = models.ForeignKey(Model, on_delete=models.DO_NOTHING, null=True) # allow null, so that we can fill the model after we have finished training
-    dataset = models.ForeignKey(Dataset, on_delete=models.DO_NOTHING, null=False, blank=False)
+    dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE, null=False, blank=False)
     task = models.OneToOneField(TaskResult, on_delete=models.CASCADE, null=True, blank=True)
     input_meta = models.JSONField(default=dict, blank=True) # input parameters to the model training
     train_meta = models.JSONField(default=dict, blank=True) # training results meta (like accuracy)

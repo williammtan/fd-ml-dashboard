@@ -35,6 +35,11 @@ class Dataset(models.Model):
         null=True
     )
 
+    def delete(self, using=None):
+        """Delete all link references, and trains"""
+        Link.objects.filter(dataset=self).delete()
+        super(Dataset, self).delete()
+
     def get_mode(self) -> Modes:
         return Modes[self.mode]
     
