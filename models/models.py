@@ -36,7 +36,7 @@ class Model(models.Model):
             self.path = self.name
         
         if not os.path.isdir(self.file_path):
-            os.makedirs(self.file_path)
+            os.makedirs(self.file_path, exist_ok=True)
 
         super(Model, self).save(*args, **kwargs)
     
@@ -67,8 +67,8 @@ class Train(models.Model):
         done = 'Done'
 
     name = models.CharField(max_length=200)
-    model = models.ForeignKey(Model, on_delete=models.DO_NOTHING, null=True) # allow null, so that we can fill the model after we have finished training
-    dataset = models.ForeignKey(Dataset, on_delete=models.DO_NOTHING, null=False, blank=False)
+    model = models.ForeignKey(Model, on_delete=models.CASCADE, null=True) # allow null, so that we can fill the model after we have finished training
+    dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE, null=False, blank=False)
     task = models.OneToOneField(TaskResult, on_delete=models.CASCADE, null=True, blank=True)
     input_meta = models.JSONField(default=dict, blank=True) # input parameters to the model training
     train_meta = models.JSONField(default=dict, blank=True) # training results meta (like accuracy)
@@ -128,7 +128,7 @@ class Train(models.Model):
 
 class Prediction(models.Model):
     """Model for prediction tasks"""
-    model = models.ForeignKey(Model, on_delete=models.DO_NOTHING)
+    model = models.ForeignKey(Model, on_delete=models.CASCADE)
     collection = models.IntegerField(null=False, blank=False)
     task = models.OneToOneField(TaskResult, on_delete=models.CASCADE, null=True, blank=True)
     meta = models.JSONField(default=dict, blank=True) # might contain "label": "some label for classification"

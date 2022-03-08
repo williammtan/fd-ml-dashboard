@@ -35,6 +35,11 @@ class Dataset(models.Model):
         null=True
     )
 
+    def delete(self, using=None):
+        """Delete all link references, and trains"""
+        Link.objects.filter(dataset=self).delete()
+        super(Dataset, self).delete()
+
     def get_mode(self) -> Modes:
         return Modes[self.mode]
     
@@ -132,8 +137,8 @@ class Example(models.Model):
         db_table = 'example'
 
 class Link(models.Model):
-    example = models.ForeignKey(Example, models.DO_NOTHING, default=0)
-    dataset = models.ForeignKey(Dataset, models.DO_NOTHING, default=0)
+    example = models.ForeignKey(Example, models.CASCADE, default=0)
+    dataset = models.ForeignKey(Dataset, models.CASCADE, default=0)
 
     class Meta:
         db_table = 'link'
