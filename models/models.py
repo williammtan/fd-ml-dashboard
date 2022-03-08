@@ -67,7 +67,7 @@ class Train(models.Model):
         done = 'Done'
 
     name = models.CharField(max_length=200)
-    model = models.ForeignKey(Model, on_delete=models.DO_NOTHING, null=True) # allow null, so that we can fill the model after we have finished training
+    model = models.ForeignKey(Model, on_delete=models.CASCADE, null=True) # allow null, so that we can fill the model after we have finished training
     dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE, null=False, blank=False)
     task = models.OneToOneField(TaskResult, on_delete=models.CASCADE, null=True, blank=True)
     input_meta = models.JSONField(default=dict, blank=True) # input parameters to the model training
@@ -128,7 +128,7 @@ class Train(models.Model):
 
 class Prediction(models.Model):
     """Model for prediction tasks"""
-    model = models.ForeignKey(Model, on_delete=models.DO_NOTHING)
+    model = models.ForeignKey(Model, on_delete=models.CASCADE)
     collection = models.IntegerField(null=False, blank=False)
     task = models.OneToOneField(TaskResult, on_delete=models.CASCADE, null=True, blank=True)
     meta = models.JSONField(default=dict, blank=True) # might contain "label": "some label for classification"
