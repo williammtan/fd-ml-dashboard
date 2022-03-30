@@ -8,9 +8,11 @@ import json
 from .tasks import serve_prodigy
 from labeling.models import Dataset
 
+
 class ModelTags(models.TextChoices):
     spacy = 'spacy'
     bert = 'bert'
+
 
 class Session(models.Model):
     class Recipes(models.TextChoices):
@@ -60,8 +62,7 @@ class Session(models.Model):
             task = AsyncResult(self.task.task_id)
             if task:
                 return task.meta.get('command')
-            
-    
+
     def close(self):
         """Close prodigy session"""
         task_id = self.task.task_id
