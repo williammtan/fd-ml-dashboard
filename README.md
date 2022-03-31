@@ -43,6 +43,7 @@ cp mock.env .env
 vi .env # change some variables
 ```
 
+#### Using Docker
 Test docker-compose locally
 ```sh
 docker-compose up -d --build # -d for running in the background, --build to build the images
@@ -56,6 +57,30 @@ docker-compose down
 Push and trigger github actions deployment
 ```sh
 git push
+```
+
+Run the migration on your Database
+```shell
+python ./manage.py migrate --database ml
+```
+
+#### Using Python and Celery (without Docker)
+
+Run docker compose but only with the Redis and MySQL images.
+```shell
+docker compose up
+```
+
+Run the Celery first   
+For Windows User, you can use this command.
+```shell
+celery -A ml_dashboard worker -l DEBUG -P solo
+```   
+For Linux/Mac Users...... I think you can just remove the `-P solo` from the command above.
+
+Run the app (use python3 instead of python for Mac or Linux users)
+```shell
+python ./manage.py runserver
 ```
 
 ## Notes

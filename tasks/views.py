@@ -46,6 +46,7 @@ def prodigy_redirect(request, session_id):
     url = settings.SESSION_URL_BASE + str(session.port) + '/'
     return redirect(url)
 
+
 class SessionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         if kwargs.get('options') is not None:
