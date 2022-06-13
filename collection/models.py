@@ -105,7 +105,7 @@ class Product(models.Model):
         """Get the product's assigned model through category --> collection --> models"""
         Model = apps.get_model('models', 'Model')
         collections = self.product_category.child.all().first().product_category.productcategorycollection_set.all()
-        return Model.objects.filter(collection__in=list(collections.values_list('id', flat=True)))
+        return Model.objects.filter(collection__in=list(collections.values_list('product_collection_group_id', flat=True)))
     
     def get_parent_category(self, default=None):
         parents = self.product_category.child.all()
