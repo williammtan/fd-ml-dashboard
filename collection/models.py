@@ -104,8 +104,13 @@ class Product(models.Model):
     def get_models(self):
         """Get the product's assigned model through category --> collection --> models"""
         Model = apps.get_model('models', 'Model')
-        collections = self.product_category.child.all().first().product_category.productcategorycollection_set.all()
-        return Model.objects.filter(collection__in=list(collections.values_list('product_collection_group_id', flat=True)))
+        category = self.product_category.child.all()
+        if category:
+            collections = category.first().product_category.productcategorycollection_set.all()
+            return Model.objects.filter(collection__in=list(collections.values_list('product_collection_group_id', flat=True)))
+        else:
+            print(f'no parent category found for product id {self.pk}')
+            return Model.objects.none()
     
     def get_parent_category(self, default=None):
         parents = self.product_category.child.all()
