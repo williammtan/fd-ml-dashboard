@@ -212,11 +212,11 @@ def update_index(self, product_ids, word2vec_model, sbert_model, batch_size=32):
         topic_sources_obj = []
         topic_status_obj = []
 
-        for pt_obj, (_, pt) in product_topics_obj, product_topics.iterrows():
+        for pt_obj, source in product_topics_obj, product_topics.source:
             topic_source = TopicSourceStatusHistory(
                 product_topic=pt_obj,
-                previous_status=pt.source,
-                current_status=pt.source
+                previous_status=source,
+                current_status=source
             )
             topic_sources_obj.append(topic_source)
             
