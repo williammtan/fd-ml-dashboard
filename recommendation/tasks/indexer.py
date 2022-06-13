@@ -14,7 +14,7 @@ from collection.models import Product
 from models.tasks import PredictionTaskBase
 from models.models import Model
 from labeling.models import Modes
-from topics.models import Topic, Label, ProductTopic, TopicSourceStatus, TopicStatus
+from topics.models import Topic, Label, ProductTopic, TopicSourceStatus, TopicSourceStatusHistory, TopicStatus, TopicStatusHistory
 
 @shared_task(bind=True)
 def reindex(self, sbert_model, word2vec_save, w2v_size=100):
@@ -179,6 +179,8 @@ def update_index(self, product_ids, word2vec_model, sbert_model, batch_size=32):
     product_topics = pd.DataFrame(product_topics)
     if not product_topics.empty:
         product_topics_obj = []
+        topic_sources_obj = []
+        topic_status_obj = []
         with transaction.atomic(using='food'):
             topics = product_topics.topic.unique()
             labels = product_topics.label.unique()
@@ -206,7 +208,23 @@ def update_index(self, product_ids, word2vec_model, sbert_model, batch_size=32):
                 )
                 product_topics_obj.append(product_topic)
 
+                topic_source = TopicSourceStatusHistory(
+                    product_topic=product_topic,
+                    previous_status=row.source,
+                    current_status=row.source
+                )
+                topic_sources_obj.append(topic_source)
+                
+                topic_status = TopicStatusHistory(
+                    product_topic=product_topic,
+                    previous_status=status,
+                    current_status=status
+                )
+                topic_status_obj.append(topic_status)
+
         ProductTopic.objects.bulk_create(product_topics_obj)
+        TopicSourceStatusHistory.objects.bulk_create(topic_sources_obj)
+        TopicStatusHistory.objects.bulk_create(topic_status_obj)
 
         # run word2vec and sbert on the models
 
