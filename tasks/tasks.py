@@ -20,7 +20,7 @@ class TaskSessionBase(Task):
         task = TaskResult.objects.get(task_id=self.request.id)
         self.session.task = task
         self.session.save()
-    
+
     def generate_source(self):
         """Generate source file from dataset's collection"""
         collection = self.session.dataset.get_collection()

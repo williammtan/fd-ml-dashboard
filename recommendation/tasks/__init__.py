@@ -1,2 +1,2 @@
 from .topic_recommendation import topic_recommendation_search
-from .indexer import reindex, update_index
+from .indexer import reindex, update_index, update_all

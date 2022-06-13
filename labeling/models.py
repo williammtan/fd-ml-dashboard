@@ -20,6 +20,12 @@ class Modes(models.TextChoices):
     TEXTCAT = 'TEXTCAT'
     TEXTCAT_MULTILABEL = 'textcat_multilabel'
 
+
+class DatasetManager(models.Manager):
+    def get_queryset(self):
+        return super(DatasetManager, self).get_queryset().filter(session=0)
+
+
 class Dataset(models.Model):
 
     name = models.CharField(max_length=100, unique=True, validators=[validate_dataset_name])
@@ -34,6 +40,8 @@ class Dataset(models.Model):
         blank=True,
         null=True
     )
+
+    objects = DatasetManager()
 
     def delete(self, using=None):
         """Delete all link references, and trains"""

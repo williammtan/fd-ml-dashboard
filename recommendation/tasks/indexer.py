@@ -155,7 +155,8 @@ def update_index(self, product_ids, word2vec_model, sbert_model, batch_size=32):
             
             # labels = [meta.get('label')]
 
-
+        p_ids = []
+        labels = set()
         for p in products_choice:
             text = p.name + '\n' + p.description
             label_dict = self.PREDICT_FUNCTIONS[model.mode](self, nlp, text, label=None)
@@ -169,6 +170,10 @@ def update_index(self, product_ids, word2vec_model, sbert_model, batch_size=32):
                         'source': source,
                         'category': p.get_parent_category()
                     })
+                    labels.add(label)
+            p_ids.append(p.id)
+
+        ProductTopic.objects.filter(product__in=p_ids, label__in=Label.objects.filter(name__in=labels), status=status).delete() # delete previous topics with these labels in these products
 
     # append product_topics
     product_topics = pd.DataFrame(product_topics)
@@ -260,4 +265,16 @@ def update_index(self, product_ids, word2vec_model, sbert_model, batch_size=32):
             })
     bulk(settings.ES, docs)
     settings.ES.indices.refresh(index=settings.ES_INDEX)
+
+
+@shared_task(bind=True)
+def update_all(self, batch_size=1000):
+    self.update_state(state='PROGRESS')
+    
+    status = TopicStatus.objects.get(slug='ml-generated')
+    ids = list(Product.objects.exclude(pk__in=(ProductTopic.objects.filter(status=status))).values_list('id', flat=True))
+
+    for i in range(0, len(ids), batch_size):
+        batch_ids = ids[i:i+batch_size]
+        update_index.delay(batch_ids, 'data/models/w2v.model', 'data/models/sbert.pkl')
 
