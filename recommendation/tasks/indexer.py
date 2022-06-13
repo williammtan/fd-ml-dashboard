@@ -266,3 +266,15 @@ def update_index(self, product_ids, word2vec_model, sbert_model, batch_size=32):
     bulk(settings.ES, docs)
     settings.ES.indices.refresh(index=settings.ES_INDEX)
 
+
+@shared_task(bind=True)
+def update_all(self, batch_size=1000):
+    self.update_state(state='PROGRESS')
+    
+    status = TopicStatus.objects.get(slug='ml-generated')
+    ids = list(Product.objects.exclude(pk__in=(ProductTopic.objects.filter(status))).values_list('id', flat=True))
+
+    for i in range(0, len(ids), batch_size):
+        batch_ids = ids[i:i+batch_size]
+        update_index.delay(batch_ids, 'data/models/w2v.model', 'data/models/sbert.pkl')
+

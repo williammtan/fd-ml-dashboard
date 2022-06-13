@@ -12,7 +12,7 @@ import time
 from collection.models import Product
 from recommendation.helper import get_offset
 
-from .tasks import update_index, reindex
+from .tasks import update_index, reindex, update_all
 
 def reindex_products(request):
     task = reindex.delay(word2vec_save='data/models/w2v.model', sbert_model='data/models/sbert.pkl')
@@ -66,6 +66,19 @@ def index_products(request):
     }
 
     return JsonResponse(response, status=200)
+
+def index_all_products(request):
+    if request.method == 'GET':
+        batch_size = int(request.GET.get('size') or 1000)
+        task = update_all.delay(batch_size)
+
+        response = {
+            'task_id': task.id
+        }
+
+        return JsonResponse(response, status=200)
+    else:
+        return HttpResponseBadRequest('Must be a GET request')
 
 def similar(request, product_id):
 
