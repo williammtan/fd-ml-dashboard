@@ -210,19 +210,19 @@ def update_index(self, product_ids, word2vec_model, sbert_model, batch_size=32):
                 product_topics_obj.append(product_topic)
 
             ProductTopic.objects.bulk_create(product_topics_obj)
-            product_topics_ids = ProductTopic.objects.filter(created_at__gt=now).values_list('id', flat=True)
+            product_topics_obj = ProductTopic.objects.filter(created_at__gt=now)
 
 
-            for pt_id, source in zip(product_topics_ids, product_topics.source):
+            for pt, source in zip(product_topics_obj, product_topics.source):
                 topic_source = TopicSourceStatusHistory(
-                    product_topic=pt_id,
+                    product_topic=pt,
                     previous_status=source,
                     current_status=source
                 )
                 topic_source.save()
                 
                 topic_status = TopicStatusHistory(
-                    product_topic=pt_id,
+                    product_topic=pt,
                     previous_status=status,
                     current_status=status
                 )
