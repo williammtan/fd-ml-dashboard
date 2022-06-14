@@ -275,5 +275,5 @@ def update_all(self, batch_size=1000):
 
     for i in range(0, len(ids), batch_size):
         batch_ids = ids[i:i+batch_size]
-        update_index.delay(batch_ids, 'data/models/w2v.model', 'data/models/sbert.pkl')
+        update_index(batch_ids, 'data/models/w2v.model', 'data/models/sbert.pkl')
 
