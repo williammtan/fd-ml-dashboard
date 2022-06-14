@@ -149,12 +149,6 @@ def update_index(self, product_ids, word2vec_model, sbert_model, batch_size=32):
         if model.mode == Modes.NER:
             entity_recognizer = nlp.get_pipe('ner')
             labels = entity_recognizer.labels
-        # TODO: make changes so that the Model table stores a default 'label'
-        # elif model.mode == Modes.TEXTCAT or model.mode == Modes.TEXTCAT_MULTILABEL:
-            # if meta.get('label') is None:
-            #     raise Exception('If the model is of mode TEXTCAT or TEXTCAT_MULTILABEL, it must contain the "label" metadata field.')
-            
-            # labels = [meta.get('label')]
 
         p_ids = []
         labels = set()
@@ -182,7 +176,6 @@ def update_index(self, product_ids, word2vec_model, sbert_model, batch_size=32):
     # append product_topics
     product_topics = pd.DataFrame(product_topics)
     if not product_topics.empty:
-        now = timezone.now()
         with transaction.atomic(using='food'):
             topics = product_topics.topic.unique()
             labels = product_topics.label.unique()
@@ -207,7 +200,6 @@ def update_index(self, product_ids, word2vec_model, sbert_model, batch_size=32):
                     product=product,
                     status=row.status,
                     source=row.source,
-                    created_at=now
                 )
                 product_topic.save()
 
