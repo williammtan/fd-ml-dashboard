@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Q
+from django.utils import timezone
 import pandas as pd
 from celery import shared_task
 from collections import defaultdict
@@ -14,7 +15,7 @@ from collection.models import Product
 from models.tasks import PredictionTaskBase
 from models.models import Model
 from labeling.models import Modes
-from topics.models import Topic, Label, ProductTopic, TopicSourceStatus, TopicStatus
+from topics.models import Topic, Label, ProductTopic, TopicSourceStatus, TopicSourceStatusHistory, TopicStatus, TopicStatusHistory
 
 @shared_task(bind=True)
 def reindex(self, sbert_model, word2vec_save, w2v_size=100):
@@ -148,12 +149,6 @@ def update_index(self, product_ids, word2vec_model, sbert_model, batch_size=32):
         if model.mode == Modes.NER:
             entity_recognizer = nlp.get_pipe('ner')
             labels = entity_recognizer.labels
-        # TODO: make changes so that the Model table stores a default 'label'
-        # elif model.mode == Modes.TEXTCAT or model.mode == Modes.TEXTCAT_MULTILABEL:
-            # if meta.get('label') is None:
-            #     raise Exception('If the model is of mode TEXTCAT or TEXTCAT_MULTILABEL, it must contain the "label" metadata field.')
-            
-            # labels = [meta.get('label')]
 
         p_ids = []
         labels = set()
@@ -173,12 +168,14 @@ def update_index(self, product_ids, word2vec_model, sbert_model, batch_size=32):
                     labels.add(label)
             p_ids.append(p.id)
 
-        ProductTopic.objects.filter(product__in=p_ids, label__in=Label.objects.filter(name__in=labels), status=status).delete() # delete previous topics with these labels in these products
+        product_topic_delete = ProductTopic.objects.filter(product__in=p_ids, label__in=Label.objects.filter(name__in=labels), status=status)
+        TopicSourceStatusHistory.objects.filter(product_topic__in=product_topic_delete).delete()
+        TopicStatusHistory.objects.filter(product_topic__in=product_topic_delete).delete()
+        product_topic_delete.delete() # delete previous topics with these labels in these products
 
     # append product_topics
     product_topics = pd.DataFrame(product_topics)
     if not product_topics.empty:
-        product_topics_obj = []
         with transaction.atomic(using='food'):
             topics = product_topics.topic.unique()
             labels = product_topics.label.unique()
@@ -202,11 +199,9 @@ def update_index(self, product_ids, word2vec_model, sbert_model, batch_size=32):
                     label=label,
                     product=product,
                     status=row.status,
-                    source=row.source
+                    source=row.source,
                 )
-                product_topics_obj.append(product_topic)
-
-        ProductTopic.objects.bulk_create(product_topics_obj)
+                product_topic.save()
 
         # run word2vec and sbert on the models
 
