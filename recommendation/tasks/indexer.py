@@ -174,9 +174,10 @@ def update_index(self, product_ids, word2vec_model, sbert_model, batch_size=32):
                     labels.add(label)
             p_ids.append(p.id)
 
-        ProductTopic.objects.filter(product__in=p_ids, label__in=Label.objects.filter(name__in=labels), status=status).delete() # delete previous topics with these labels in these products
-        TopicSourceStatusHistory.objects.filter(product_topic__in=p_ids).delete()
-        TopicStatusHistory.objects.filter(product_topic__in=p_ids).delete()
+        product_topic_delete = ProductTopic.objects.filter(product__in=p_ids, label__in=Label.objects.filter(name__in=labels), status=status)
+        TopicSourceStatusHistory.objects.filter(product_topic__in=product_topic_delete).delete()
+        TopicStatusHistory.objects.filter(product_topic__in=product_topic_delete).delete()
+        product_topic_delete.delete() # delete previous topics with these labels in these products
 
     # append product_topics
     product_topics = pd.DataFrame(product_topics)
