@@ -267,7 +267,7 @@ def update_all(self, batch_size=1000):
     self.update_state(state='PROGRESS')
     
     status = TopicStatus.objects.get(slug='ml-generated')
-    ids = list(Product.objects.exclude(pk__in=(ProductTopic.objects.filter(status=status))).values_list('product__id', flat=True))
+    ids = list(Product.objects.exclude(pk__in=(ProductTopic.objects.filter(status=status).values_list('product__id', flat=True))))
 
     for i in range(0, len(ids), batch_size):
         batch_ids = ids[i:i+batch_size]
