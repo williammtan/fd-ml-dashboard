@@ -175,11 +175,12 @@ def update_index(self, product_ids, word2vec_model, sbert_model, batch_size=32):
             p_ids.append(p.id)
 
         ProductTopic.objects.filter(product__in=p_ids, label__in=Label.objects.filter(name__in=labels), status=status).delete() # delete previous topics with these labels in these products
+        TopicSourceStatusHistory.objects.filter(product_topic__in=p_ids).delete()
+        TopicStatusHistory.objects.filter(product_topic__in=p_ids).delete()
 
     # append product_topics
     product_topics = pd.DataFrame(product_topics)
     if not product_topics.empty:
-        product_topics_obj = []
         now = timezone.now()
         with transaction.atomic(using='food'):
             topics = product_topics.topic.unique()
