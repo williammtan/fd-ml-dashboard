@@ -108,8 +108,11 @@ def similar(request, product_id):
         try:
             city_id = int(request.GET.get('city_id'))
             must.append({"match": {"delivery_area": city_id}})
-        except ValueError:
+        except ValueError: # if city_id is filled but not an integer
+            return HttpResponseBadRequest("City ID must be an integer")
+        except TypeError: # if city_id is None (not filled)
             pass
+        
 
 
         product = product_res['_source']
