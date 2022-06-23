@@ -99,6 +99,7 @@ def similar(request, product_id):
         except ValueError:
             return HttpResponseBadRequest("Page must be an integer")
 
+        locale = request.GET.get('locale', 'id')
         must = [
             {"match": {"outlet_locale": locale}},
             {"match": {"is_active": 1}}
@@ -110,7 +111,6 @@ def similar(request, product_id):
         except ValueError:
             pass
 
-        locale = request.GET.get('locale', 'id')
 
         product = product_res['_source']
         product_vec = product['vector']
