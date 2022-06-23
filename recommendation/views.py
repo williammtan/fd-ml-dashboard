@@ -99,10 +99,16 @@ def similar(request, product_id):
         except ValueError:
             return HttpResponseBadRequest("Page must be an integer")
 
+        must = [
+            {"match": {"outlet_locale": locale}},
+            {"match": {"is_active": 1}}
+        ]
+
         try:
             city_id = int(request.GET.get('city_id'))
+            must.append({"match": {"delivery_area": city_id}})
         except ValueError:
-            return HttpResponseBadRequest("City ID must be an integer")
+            pass
 
         locale = request.GET.get('locale', 'id')
 
@@ -113,11 +119,7 @@ def similar(request, product_id):
             "script_score": {
                 "query": {
                     "bool": {
-                        "must": [
-                            {"match": {"outlet_locale": locale}},
-                            {"match": {"delivery_area": city_id}},
-                            {"match": {"is_active": 1}}
-                        ],
+                        "must": must,
                         "must_not": [
                             {"match": {"_id": product_id }}
                         ]
