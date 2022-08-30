@@ -53,6 +53,29 @@ class Outlets(models.Model):
         managed = False
         db_table = 'outlets'
 
+class DeliveryAreas(models.Model):
+    outlet = models.ForeignKey('Outlets', models.DO_NOTHING)
+    name = models.CharField(max_length=60)
+    created_by = models.IntegerField()
+    updated_by = models.IntegerField()
+    created_at = models.DateTimeField()
+    updated_at = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'delivery_areas'
+
+class ProductDeliveryAreas(models.Model):
+    product = models.ForeignKey('Products', models.DO_NOTHING)
+    delivery_area = models.ForeignKey(DeliveryAreas, models.DO_NOTHING)
+    created_by = models.IntegerField()
+    updated_by = models.IntegerField()
+    created_at = models.DateTimeField()
+    updated_at = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'product_delivery_areas'
 
 class Product(models.Model):
     outlet = models.ForeignKey('Outlets', models.DO_NOTHING)
@@ -73,6 +96,10 @@ class Product(models.Model):
     topics = models.ManyToManyField(
         'topics.Topic',
         through='topics.ProductTopic'
+    )
+    delivery_areas = models.ManyToManyField(
+        DeliveryAreas,
+        through=ProductDeliveryAreas
     )
 
     def get_localizations(self):

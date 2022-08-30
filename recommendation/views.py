@@ -121,6 +121,7 @@ def similar(request, product_id):
                 }
             }
         }
+        print({"size": size, "from": get_offset(page, size), "_source": ["_id"], "query": script_query})
 
         res = settings.ES.search(index=settings.ES_INDEX, body={"size": size, "from": get_offset(page, size), "_source": ["_id"], "query": script_query})
         count = settings.ES.count(index=settings.ES_INDEX, body={"query": script_query})["count"]
@@ -196,6 +197,7 @@ def similar_many(request):
                         "should": [
                             {"match": {"outlet_locale": locale}},
                             {"match": {"delivery_area.id": city_id}},
+                        ] + [
                             {'match': {"category": c}}
                             for c in set(categories)
                         ],
